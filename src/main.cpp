@@ -4,7 +4,7 @@
 #include <array>
 #include <vector>
 
-enum Suit { heart, diamond, club, spade };
+enum Suit { HEART, DIAMOND, CLUB, SPADE };
 enum HandIndex {
     NO_HAND, HIGH_CARD, ONE_PAIR, TWO_PAIR, THREE_OF_A_KIND, STRAIGHT,
     FLUSH, FULL_HOUSE, FOUR_OF_A_KIND, STRAIGHT_FLUSH, ROYAL_FLUSH
@@ -40,10 +40,19 @@ const std::array<int, 52> c_cardValue = {
     14, 14, 14, 14
 };
 const std::array<Suit, 52> c_cardSuit = {
-    heart, heart, heart, heart, heart, heart, heart, heart, heart, heart, heart, heart, heart, 
-    diamond, diamond, diamond, diamond, diamond, diamond, diamond, diamond, diamond, diamond, diamond, diamond, diamond, 
-    club, club, club, club, club, club, club, club, club, club, club, club, club,
-    spade, spade, spade, spade, spade, spade, spade, spade, spade, spade, spade, spade, spade
+    HEART, DIAMOND, CLUB, SPADE,
+    HEART, DIAMOND, CLUB, SPADE,
+    HEART, DIAMOND, CLUB, SPADE,
+    HEART, DIAMOND, CLUB, SPADE,
+    HEART, DIAMOND, CLUB, SPADE,
+    HEART, DIAMOND, CLUB, SPADE,
+    HEART, DIAMOND, CLUB, SPADE,
+    HEART, DIAMOND, CLUB, SPADE,
+    HEART, DIAMOND, CLUB, SPADE,
+    HEART, DIAMOND, CLUB, SPADE,
+    HEART, DIAMOND, CLUB, SPADE,
+    HEART, DIAMOND, CLUB, SPADE,
+    HEART, DIAMOND, CLUB, SPADE
 };
 std::array<bool, 52> c_inDeck = {
     true, true, true, true, true, true, true, true, true, true, true, true, true,
