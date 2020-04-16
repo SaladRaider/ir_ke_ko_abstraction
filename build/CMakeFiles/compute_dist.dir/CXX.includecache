@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/peter/code/personal_projects/poker_bot/ir_ke_ko_abstraction/src/main.cpp
+iostream
+-
+fstream
+-
+algorithm
+-
+array
+-
+vector
+-
+
