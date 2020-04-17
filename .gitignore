@@ -2,3 +2,5 @@
 *.o
 *.swp
 build/compute_dist
+*/callgrind.out.*
+*.includecache

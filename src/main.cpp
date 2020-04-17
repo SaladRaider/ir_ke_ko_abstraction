@@ -1,8 +1,9 @@
 #include <iostream>
 #include <fstream>
+#include <memory>
 #include <algorithm>
 #include <array>
-#include <vector>
+#include <unordered_map>
 
 enum Suit { HEART, DIAMOND, CLUB, SPADE };
 enum HandIndex {
@@ -81,14 +82,14 @@ bool operator> (const HandType &h1, const HandType &h2)
     return c_cardValue[h1.keyCardIndex.at(4)] > c_cardValue[h2.keyCardIndex.at(4)];
 }
 
-void findHighCard(HandType *handType, std::array<int, 7> *cards)
+void findHighCard(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
     handType->handIndex = HIGH_CARD;
     for (int i = 0; i < 5; i++)
     handType->keyCardIndex.at(i) = 6 - i;
 }
 
-void findOnePair(HandType *handType, std::array<int, 7> *cards)
+void findOnePair(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
     handType->keyCardIndex.at(2) = -1;
     handType->keyCardIndex.at(3) = -1;
@@ -97,6 +98,7 @@ void findOnePair(HandType *handType, std::array<int, 7> *cards)
     for (int i = 6; i >= 0; i--)
     if (i >= 1 && c_cardValue[cards->at(i)] == c_cardValue[cards->at(i - 1)])
     {
+        handType->handIndex = ONE_PAIR;
         handType->keyCardIndex.at(0) = i;
         handType->keyCardIndex.at(1) = i - 1;
         i -= 1;
@@ -109,7 +111,7 @@ void findOnePair(HandType *handType, std::array<int, 7> *cards)
     return;
 }
 
-void findTwoPair(HandType *handType, std::array<int, 7> *cards)
+void findTwoPair(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
     handType->keyCardIndex.at(0) = -1;
     handType->keyCardIndex.at(4) = -1;
@@ -123,6 +125,7 @@ void findTwoPair(HandType *handType, std::array<int, 7> *cards)
         }
         if (handType->keyCardIndex.at(2) == -1)
         {
+            handType->handIndex = TWO_PAIR;
             handType->keyCardIndex.at(2) = i;
             handType->keyCardIndex.at(3) = i - 1;
         }
@@ -133,7 +136,7 @@ void findTwoPair(HandType *handType, std::array<int, 7> *cards)
     return;
 }
 
-void findThreeOfAKind(HandType *handType, std::array<int, 7> *cards)
+void findThreeOfAKind(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
     int j = 3;
     handType->keyCardIndex.at(3) = -1;
@@ -157,7 +160,7 @@ void findThreeOfAKind(HandType *handType, std::array<int, 7> *cards)
     return;
 }
 
-void findFourOfAKind(HandType *handType, std::array<int, 7> *cards)
+void findFourOfAKind(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
     handType->keyCardIndex.at(4) = -1;
     for (int i = 6; i >= 0; i--)
@@ -178,7 +181,7 @@ void findFourOfAKind(HandType *handType, std::array<int, 7> *cards)
     return;
 }
 
-void findFullHouse(HandType *handType, std::array<int, 7> *cards)
+void findFullHouse(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
     findThreeOfAKind(handType, cards);
     if (handType->handIndex != THREE_OF_A_KIND)
@@ -189,100 +192,134 @@ void findFullHouse(HandType *handType, std::array<int, 7> *cards)
     for (int i = 6; i > 0; i--)
     if ((i > i0 || i < i2) && c_cardValue[cards->at(i)] == c_cardValue[cards->at(i - 1)])
     {
+        handType->handIndex = FULL_HOUSE;
         handType->keyCardIndex.at(3) = i;
         handType->keyCardIndex.at(4) = i - 1;
     }
     return;
 }
 
-void findFlush(HandType *handType, std::array<int, 7> *cards)
+std::array<std::array<int, 5>, 4> suitIdx;
+std::array<int, 4> suitIdxSize;
+void findFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
-    std::array<std::vector<int>, 4> suitIdx;
+    suitIdxSize.fill(0);
+    int suit;
     for (int i = 6; i >= 0; i--)
     {
-        int cardSuit = c_cardSuit[cards->at(i)];
-        if (suitIdx.at(cardSuit).size() < 5)
-            suitIdx.at(cardSuit).push_back(i);
+        suit = c_cardSuit[cards->at(i)];
+        if (suitIdxSize.at(suit) < 5)
+        {
+            suitIdx.at(suit).at(suitIdxSize.at(suit)) = i;
+            suitIdxSize.at(suit) += 1;
+        }   
         else
         {
             handType->handIndex = FLUSH;
             for (int j = 4; j >= 0; j--)
-                handType->keyCardIndex.at(j) = suitIdx.at(cardSuit).at(j);
+                handType->keyCardIndex.at(j) = suitIdx.at(suit).at(j);
             return;
         }
     }
     return;
 }
 
-void findStraight(HandType *handType, std::array<int, 7> *cards)
+std::array<int, 5> straight;
+void findStraight(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
-    std::vector<int> straight;
-    for (int i = 6; i < 13; i++)
-    if (c_cardValue[cards->at(i % 7)] + 1 == c_cardValue[cards->at((i + 1) % 7)] ||
-        c_cardValue[cards->at(i % 7)] % 14 + 2 == c_cardValue[cards->at((i + 1) % 7)])
+    int straightSize = 0;
+    int k;
+    int kk;
+    int cV0, cV1;
+    for (int i = 13; i >= 6; i--)
     {
-        straight.push_back(i % 7);
-        if (straight.size() >= 5)
+    k = i % 7;
+    kk = (i + 1) % 7;
+    cV0 = c_cardValue[cards->at(k)];
+    cV1 = c_cardValue[cards->at(kk)];
+    if (cV0 - 1 == cV1 ||
+        cV0 + 12 == cV1)
+    {
+        straight.at(straightSize) = k;
+        straightSize += 1;
+        if (straightSize == 5)
         {
             handType->handIndex = STRAIGHT;
-            if (c_cardValue[cards->at(i % 7)] == 3)
+            if (cV0 == 14)
             {
                 for (int j = 0; j < 4; j++)
-                    handType->keyCardIndex.at(j + 1) = straight.at(4 - j);
-                handType->keyCardIndex.at(0) = 6;
+                    handType->keyCardIndex.at(j + 1) = straight.at(j);
+                handType->keyCardIndex.at(0) = k;
             }
             else
             {
                 for (int j = 0; j < 5; j++)
-                    handType->keyCardIndex.at(j) = straight.at(4 - j);
+                    handType->keyCardIndex.at(j) = straight.at(j);
             }
             return;
         }
     }
-    else if (c_cardValue[cards->at(i % 7)] != c_cardValue[cards->at((i + 1) % 7)])
+    else if (cV0 != cV1)
     {
-        straight.clear();
+        straightSize = 1;
+        straight.at(0) = k;
+    }
     }
 }
 
-void findStraightFlush(HandType *handType, std::array<int, 7> *cards)
+std::array<std::array<int, 5>, 4> sFlush;
+std::array<int, 4> sFlushSize;
+void findStraightFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
-    std::array<std::vector<int>, 4> sFlush;
-    for (int i = 6; i < 13; i++)
+    findFlush(handType, cards);
+    if (handType->handIndex != FLUSH)
+        return;
+    sFlushSize.fill(0);
+    int k;
+    int cV0;
+    int suit;
+    for (int i = 13; i >= 3; i--)
     {
-        int suit = (int) c_cardSuit[cards->at(i % 7)];
-        if (sFlush.at(suit).empty())
+        k = i % 7;
+        cV0 = c_cardValue[cards->at(k)];
+        suit = (int) c_cardSuit[cards->at(k)];
+        if (sFlushSize.at(suit) == 0)
         {
-            sFlush.at(suit).push_back(i % 7);
+            sFlush.at(suit).at(0) = k;
+            sFlushSize.at(suit) += 1;
         }
-        else if (c_cardValue[sFlush.at(suit).back()] + 1 == c_cardValue[cards->at(i % 7)] ||
-                 c_cardValue[sFlush.at(suit).back()] % 14 + 2 == c_cardValue[cards->at(i % 7)])
+        else if (c_cardValue[sFlush.at(suit).back()] - 1 == cV0 ||
+                 c_cardValue[sFlush.at(suit).back()] + 12 == cV0)
         {
-            sFlush.at(suit).push_back(i % 7);
-            if (sFlush.at(suit).size() >= 5)
+            sFlush.at(suit).at(sFlushSize.at(suit)) = k;
+            sFlushSize.at(suit) += 1;
+            if (sFlushSize.at(suit) == 5)
             {
                 handType->handIndex = STRAIGHT_FLUSH;
-                if (c_cardValue[cards->at(i % 7)] == 3)
+                if (cV0 == 14)
                 {
                     for (int j = 0; j < 4; j++)
-                        handType->keyCardIndex.at(j + 1) = sFlush.at(suit).at(4 - j);
-                    handType->keyCardIndex.at(0) = 6;
+                        handType->keyCardIndex.at(j + 1) = sFlush.at(suit).at(j);
+                    handType->keyCardIndex.at(0) = k;
                 }
                 else
                 {
                     for (int j = 0; j < 5; j++)
-                        handType->keyCardIndex.at(j) = sFlush.at(suit).at(4 - j);
+                        handType->keyCardIndex.at(j) = sFlush.at(suit).at(j);
                 }
                 return;
             }
         }
         else
-            sFlush.at(suit).clear();
+        {
+            sFlush.at(suit).at(0) = k;
+            sFlushSize.at(suit) = 1;
+        }
     }
     return;
 }
 
-void findRoyalFlush(HandType *handType, std::array<int, 7> *cards)
+void findRoyalFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
     findStraightFlush(handType, cards);
     if (handType->handIndex == STRAIGHT_FLUSH &&
@@ -291,9 +328,8 @@ void findRoyalFlush(HandType *handType, std::array<int, 7> *cards)
     return;
 }
 
-void findHandType(HandType *handType, std::array<int, 7> *cards)
+void findHandType(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
-    std::sort(cards->begin(), cards->end());
     findRoyalFlush(handType, cards);
     if (handType->handIndex == ROYAL_FLUSH) {
         return;
@@ -334,23 +370,77 @@ void findHandType(HandType *handType, std::array<int, 7> *cards)
     return;
 }
 
-int getValue(int p0, int p1, int e0, int e1, int c0, int c1, int c2, int c3, int c4)
+int hashGetValueArgs(std::array<int, 7> *cards)
 {
-    HandType pHand;
-    HandType eHand;
-    std::array<int, 7> pCards = {p0, p1, c0, c1, c2, c3, c4};
-    std::array<int, 7> eCards = {e0, e1, c0, c1, c2, c3, c4};
-    findHandType(&pHand, &pCards);
-    findHandType(&eHand, &eCards);
-    if (pHand > eHand)
-        return 2;
-    else if (eHand > pHand)
-        return 0;
-    else
-        return 1;
+    int k = 53;
+    int hash = 0;
+    for (int i = 0; i < 7; i++)
+    {
+        hash = (cards->at(i)+1) * k;
+    }
+    return hash;
 }
 
-int compute4thRound()
+std::unordered_map<int, std::unique_ptr<HandType>> handTypeCache;
+std::unique_ptr<HandType> pHandp;
+std::unique_ptr<HandType> eHandp;
+HandType pHand;
+HandType eHand;
+std::array<int, 7> pCards;
+std::array<int, 7> eCards;
+std::array<int, 5> cCards;
+int getValue(int p0, int p1, int e0, int e1, int c0, int c1, int c2, int c3, int c4)
+{
+    bool setFirstE = false;
+    bool setSecondE = false;
+    int j = 0;
+    for (int i = 0; i < 7; i++)
+    {
+        if (!setFirstE && (j == 5 || e0 < cCards.at(j)))
+        {
+            setFirstE = true;
+            eCards.at(i) = e0;
+        }
+        else if (setFirstE && !setSecondE && (j == 5 || e1 < cCards.at(j)))
+        {
+            setSecondE = true;
+            eCards.at(i) = e1;
+        }
+        else
+        {
+            eCards.at(i) = cCards.at(j);
+            j += 1;
+        }
+    }
+    int pHash = hashGetValueArgs(&pCards);
+    int eHash = hashGetValueArgs(&eCards);
+    if (handTypeCache.find(pHash) == handTypeCache.end())
+    {
+        handTypeCache[pHash] = std::unique_ptr<HandType> (new HandType);
+        findHandType(handTypeCache.at(pHash), &pCards);
+    }
+    if (handTypeCache.find(eHash) == handTypeCache.end())
+    {
+        handTypeCache[eHash] = std::unique_ptr<HandType> (new HandType);
+        findHandType(handTypeCache.at(eHash), &eCards);
+    }
+    pHand = *handTypeCache.at(pHash);
+    eHand = *handTypeCache.at(eHash);
+    if (pHand > eHand)
+    {
+        return 2;
+    }
+    else if (eHand > pHand)
+    {
+        return 0;
+    }
+    else
+    {
+        return 1;
+    }
+}
+
+unsigned long int compute4thRound(int limit)
 {
     std::ofstream f;
     f.open("4th_round_distributions.csv");
@@ -358,6 +448,7 @@ int compute4thRound()
     int n = 52;
     int k = 2;
     int count = 0;
+    unsigned long int innerCount = 0;
     for (int i0 = 0; i0 < n - 2 + 1; i0++)
     for (int i1 = i0 + 1; i1 < n - 2 + 2; i1++)
     {
@@ -379,6 +470,29 @@ int compute4thRound()
             c_inDeck[i4] = false;
             c_inDeck[i5] = false;
             c_inDeck[i6] = false;
+            cCards = {i2, i3, i4, i5, i6};
+            bool setFirstP = false;
+            bool setSecondP = false;
+            int j = 0;
+            for (int i = 0; i < 7; i++)
+            {
+                if (!setFirstP && (j == 5 || i0 < cCards.at(j)))
+                {
+                    setFirstP = true;
+                    pCards.at(i) = i0;
+                }
+                else if (setFirstP && !setSecondP && (j == 5 || i1 < cCards.at(j)))
+                {
+                    setSecondP = true;
+                    pCards.at(i) = i1;
+                }
+                else
+                {
+                    pCards.at(i) = cCards.at(j);
+                    j += 1;
+                }
+            }
+            std::sort(pCards.begin(), pCards.end());
             count += 1;
             int sum = 0;
             int numCases = 0;
@@ -394,13 +508,17 @@ int compute4thRound()
                 buckets.at(v) += 1;
                 numCases += 1;
                 sum += v;
+                innerCount += 1;
             }
+            if (handTypeCache.size() >= 1758276) // (52 choose 2)^2
+                handTypeCache.clear();
             float mean = (float) sum / (numCases * 2);
             f << i0 << ',' << i1 << ',' << i2 << ',' << i3 << ',' << i4 << ',' << i5 << ',' << i6;
             f << ',' << buckets.at(0) << ',' << buckets.at(1) << ',' << buckets.at(2) << ',' << mean << '\n';
-            if (count >= 10) {
+            if (count >= limit)
+            {
                 f.close();
-                return count;
+                return innerCount;
             }
             c_inDeck[i2] = true;
             c_inDeck[i3] = true;
@@ -412,12 +530,24 @@ int compute4thRound()
         c_inDeck[i1] = true;
     }
     f.close();
-    return count;
+    return innerCount;
 }
 
 int main()
 {
-    int count = compute4thRound();
-    printf("count = %d\n", count);
+    int T;
+    printf("T:\n");
+    std::cin >> T;
+    unsigned long int innerCount = compute4thRound(T);
+    HandType handType;
+    handType.handIndex = HIGH_CARD;
+    handType.keyCardIndex.at(0) = 52;
+    handType.keyCardIndex.at(1) = 52;
+    handType.keyCardIndex.at(2) = 52;
+    handType.keyCardIndex.at(3) = 52;
+    handType.keyCardIndex.at(4) = 52;
+    printf("sizeof(handType) = %d\n", sizeof(handType));
+    printf("innerCount = %d\n", innerCount);
+    printf("handTypeCache.size() = %d\n", handTypeCache.size());
     printf("Done computing.\n");
 }
