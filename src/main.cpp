@@ -1,8 +1,15 @@
 #include <iostream>
+#include <iomanip>
+#include <sstream>
 #include <fstream>
+#include <pthread.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <thread>
 #include <memory>
 #include <algorithm>
 #include <array>
+#include <vector>
 #include <unordered_map>
 
 enum Suit { HEART, DIAMOND, CLUB, SPADE };
@@ -10,6 +17,11 @@ enum HandIndex {
     NO_HAND, HIGH_CARD, ONE_PAIR, TWO_PAIR, THREE_OF_A_KIND, STRAIGHT,
     FLUSH, FULL_HOUSE, FOUR_OF_A_KIND, STRAIGHT_FLUSH, ROYAL_FLUSH
 };
+
+// 4th round estimated file size: 74.19 GB
+//     6.18 GB per file
+//     12 4th round files
+// estimated time to compute w/ 12 threads: 4.27 hours
 
 // memory requirements:
 // 1-3 betting round distribution map item size: 416 bytes
@@ -77,35 +89,32 @@ bool operator> (const HandType &h1, const HandType &h2)
     if (h1.handIndex != h2.handIndex)
         return h1.handIndex > h2.handIndex;
     for (int i = 0; i < 4; i++)
-    if (h1.keyCardIndex.at(i) != h2.keyCardIndex.at(i))
-        return c_cardValue[h1.keyCardIndex.at(i)] > c_cardValue[h2.keyCardIndex.at(i)];
-    return c_cardValue[h1.keyCardIndex.at(4)] > c_cardValue[h2.keyCardIndex.at(4)];
+    if (h1.keyCardIndex[i] != h2.keyCardIndex[i])
+        return c_cardValue[h1.keyCardIndex[i]] > c_cardValue[h2.keyCardIndex[i]];
+    return c_cardValue[h1.keyCardIndex[4]] > c_cardValue[h2.keyCardIndex[4]];
 }
 
 void findHighCard(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
     handType->handIndex = HIGH_CARD;
     for (int i = 0; i < 5; i++)
-    handType->keyCardIndex.at(i) = 6 - i;
+    handType->keyCardIndex[i] = 6 - i;
 }
 
 void findOnePair(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
-    handType->keyCardIndex.at(2) = -1;
-    handType->keyCardIndex.at(3) = -1;
-    handType->keyCardIndex.at(4) = -1;
     int j = 2;
     for (int i = 6; i >= 0; i--)
-    if (i >= 1 && c_cardValue[cards->at(i)] == c_cardValue[cards->at(i - 1)])
+    if (i >= 1 && c_cardValue[(*cards)[i]] == c_cardValue[(*cards)[i - 1]])
     {
         handType->handIndex = ONE_PAIR;
-        handType->keyCardIndex.at(0) = i;
-        handType->keyCardIndex.at(1) = i - 1;
+        handType->keyCardIndex[0] = i;
+        handType->keyCardIndex[1] = i - 1;
         i -= 1;
     }
-    else if (j < 5 && handType->keyCardIndex.at(j) != -1)
+    else if (j < 5 && handType->keyCardIndex[j] != -1)
     {
-        handType->keyCardIndex.at(j) = i; 
+        handType->keyCardIndex[j] = i; 
         j += 1;
     }
     return;
@@ -113,48 +122,46 @@ void findOnePair(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 
 void findTwoPair(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
-    handType->keyCardIndex.at(0) = -1;
-    handType->keyCardIndex.at(4) = -1;
     for (int i = 6; i >= 0; i--)
-    if (i >= 1 && c_cardValue[cards->at(i)] == c_cardValue[cards->at(i - 1)])
+    if (i >= 1 && c_cardValue[(*cards)[i]] == c_cardValue[(*cards)[i - 1]])
     {
-        if (handType->keyCardIndex.at(0) == -1)
+        if (handType->keyCardIndex[0] == -1)
         {
-            handType->keyCardIndex.at(0) = i;
-            handType->keyCardIndex.at(1) = i - 1;
+            handType->keyCardIndex[0] = i;
+            handType->keyCardIndex[1] = i - 1;
         }
-        if (handType->keyCardIndex.at(2) == -1)
+        if (handType->keyCardIndex[2] == -1)
         {
             handType->handIndex = TWO_PAIR;
-            handType->keyCardIndex.at(2) = i;
-            handType->keyCardIndex.at(3) = i - 1;
+            handType->keyCardIndex[2] = i;
+            handType->keyCardIndex[3] = i - 1;
         }
         i -= 1;
     }
-    else if (handType->keyCardIndex.at(4) == -1)
-        handType->keyCardIndex.at(4) = i;
+    else if (handType->keyCardIndex[4] == -1)
+        handType->keyCardIndex[4] = i;
     return;
 }
 
 void findThreeOfAKind(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
     int j = 3;
-    handType->keyCardIndex.at(3) = -1;
-    handType->keyCardIndex.at(4) = -1;
+    handType->keyCardIndex[3] = -1;
+    handType->keyCardIndex[4] = -1;
     for (int i = 6; i >= 0; i--)
     if (i >= 2 &&
-        c_cardValue[cards->at(i)] == c_cardValue[cards->at(i - 1)] &&
-        c_cardValue[cards->at(i)] == c_cardValue[cards->at(i - 2)])
+        c_cardValue[(*cards)[i]] == c_cardValue[(*cards)[i - 1]] &&
+        c_cardValue[(*cards)[i]] == c_cardValue[(*cards)[i - 2]])
     {
         handType->handIndex = THREE_OF_A_KIND;
-        handType->keyCardIndex.at(0) = i;
-        handType->keyCardIndex.at(1) = i - 1;
-        handType->keyCardIndex.at(2) = i - 2;
+        handType->keyCardIndex[0] = i;
+        handType->keyCardIndex[1] = i - 1;
+        handType->keyCardIndex[2] = i - 2;
         return;
     }
-    else if (j < 5 && handType->keyCardIndex.at(j) == -1)
+    else if (j < 5 && handType->keyCardIndex[j] == -1)
     {
-        handType->keyCardIndex.at(j) = i;
+        handType->keyCardIndex[j] = i;
         j += 1;
     }
     return;
@@ -162,22 +169,22 @@ void findThreeOfAKind(std::unique_ptr<HandType> &handType, std::array<int, 7> *c
 
 void findFourOfAKind(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
-    handType->keyCardIndex.at(4) = -1;
+    handType->keyCardIndex[4] = -1;
     for (int i = 6; i >= 0; i--)
     if (i >= 3 &&
-        c_cardValue[cards->at(i)] == c_cardValue[cards->at(i - 1)] &&
-        c_cardValue[cards->at(i)] == c_cardValue[cards->at(i - 2)] &&
-        c_cardValue[cards->at(i)] == c_cardValue[cards->at(i - 3)])
+        c_cardValue[(*cards)[i]] == c_cardValue[(*cards)[i - 1]] &&
+        c_cardValue[(*cards)[i]] == c_cardValue[(*cards)[i - 2]] &&
+        c_cardValue[(*cards)[i]] == c_cardValue[(*cards)[i - 3]])
     {
         handType->handIndex = FOUR_OF_A_KIND;
-        handType->keyCardIndex.at(0) = i;
-        handType->keyCardIndex.at(1) = i - 1;
-        handType->keyCardIndex.at(2) = i - 2;
-        handType->keyCardIndex.at(3) = i - 3;
+        handType->keyCardIndex[0] = i;
+        handType->keyCardIndex[1] = i - 1;
+        handType->keyCardIndex[2] = i - 2;
+        handType->keyCardIndex[3] = i - 3;
         return;
     }
-    else if (handType->keyCardIndex.at(4) == -1)
-        handType->keyCardIndex.at(4) = i;
+    else if (handType->keyCardIndex[4] == -1)
+        handType->keyCardIndex[4] = i;
     return;
 }
 
@@ -186,38 +193,38 @@ void findFullHouse(std::unique_ptr<HandType> &handType, std::array<int, 7> *card
     findThreeOfAKind(handType, cards);
     if (handType->handIndex != THREE_OF_A_KIND)
         return;
-    int i0 = handType->keyCardIndex.at(0);
-    int i1 = handType->keyCardIndex.at(1);
-    int i2 = handType->keyCardIndex.at(2);
+    int i0 = handType->keyCardIndex[0];
+    int i1 = handType->keyCardIndex[1];
+    int i2 = handType->keyCardIndex[2];
     for (int i = 6; i > 0; i--)
     if ((i > i0 || i < i2) && c_cardValue[cards->at(i)] == c_cardValue[cards->at(i - 1)])
     {
         handType->handIndex = FULL_HOUSE;
-        handType->keyCardIndex.at(3) = i;
-        handType->keyCardIndex.at(4) = i - 1;
+        handType->keyCardIndex[3] = i;
+        handType->keyCardIndex[4] = i - 1;
     }
     return;
 }
 
-std::array<std::array<int, 5>, 4> suitIdx;
-std::array<int, 4> suitIdxSize;
-void findFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
+void findFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards,
+               std::array<std::array<int, 5>, 4> *suitIdx,
+               std::array<int, 4> *suitIdxSize)
 {
-    suitIdxSize.fill(0);
+    suitIdxSize->fill(0);
     int suit;
     for (int i = 6; i >= 0; i--)
     {
-        suit = c_cardSuit[cards->at(i)];
-        if (suitIdxSize.at(suit) < 5)
+        suit = c_cardSuit[(*cards)[i]];
+        if ((*suitIdxSize)[suit] < 5)
         {
-            suitIdx.at(suit).at(suitIdxSize.at(suit)) = i;
-            suitIdxSize.at(suit) += 1;
+            (*suitIdx)[suit][(*suitIdxSize)[suit]] = i;
+            (*suitIdxSize)[suit] += 1;
         }   
         else
         {
             handType->handIndex = FLUSH;
             for (int j = 4; j >= 0; j--)
-                handType->keyCardIndex.at(j) = suitIdx.at(suit).at(j);
+                handType->keyCardIndex[j] = (*suitIdx)[suit][j];
             return;
         }
     }
@@ -225,9 +232,52 @@ void findFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 }
 
 std::array<int, 5> straight;
-void findStraight(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
+void findStraight(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards,
+                  std::array<int, 15> *straightMask)
 {
-    int straightSize = 0;
+    int cardValue;
+    for (int i = 0; i < 15; i++)
+    {
+        (*straightMask)[i] = -1;
+    }
+    for (int i = 0; i < 7; i++)
+    {
+        cardValue = c_cardValue[(*cards)[i]];
+        (*straightMask)[cardValue] = (*cards)[i];
+    }
+    if ((*straightMask)[14] != -1 &&
+        (*straightMask)[13] != -1 &&
+        (*straightMask)[12] != -1 &&
+        (*straightMask)[11] != -1 &&
+        (*straightMask)[10] != -1)
+    {
+        handType->handIndex = STRAIGHT;
+        handType->keyCardIndex[0] = (*straightMask)[14];
+        handType->keyCardIndex[1] = (*straightMask)[2];
+        handType->keyCardIndex[2] = (*straightMask)[3];
+        handType->keyCardIndex[3] = (*straightMask)[4];
+        handType->keyCardIndex[4] = (*straightMask)[5];
+    }
+    int count = 0;
+    for (int i = 14; i >= 6; i--)
+    {
+        if ((*straightMask)[i] != -1)
+        {
+            count += 1;
+            if (count == 5)
+            {
+                handType->handIndex = STRAIGHT;
+                handType->keyCardIndex[0] = (*straightMask)[i + 4];
+                handType->keyCardIndex[1] = (*straightMask)[i + 3];
+                handType->keyCardIndex[2] = (*straightMask)[i + 2];
+                handType->keyCardIndex[3] = (*straightMask)[i + 1];
+                handType->keyCardIndex[4] = (*straightMask)[i];
+            }
+        }
+        else
+            count = 0;
+    }
+    /*int straightSize = 0;
     int k;
     int kk;
     int cV0, cV1;
@@ -264,77 +314,82 @@ void findStraight(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards
         straightSize = 1;
         straight.at(0) = k;
     }
-    }
+    }*/
 }
 
-std::array<std::array<int, 5>, 4> sFlush;
-std::array<int, 4> sFlushSize;
-void findStraightFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
+void findStraightFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards,
+                       std::array<std::array<int, 5>, 4> *sFlush,
+                       std::array<int, 4> *sFlushSize)
 {
-    findFlush(handType, cards);
+    findFlush(handType, cards, sFlush, sFlushSize);
     if (handType->handIndex != FLUSH)
         return;
-    sFlushSize.fill(0);
+    sFlushSize->fill(0);
     int k;
     int cV0;
     int suit;
     for (int i = 13; i >= 3; i--)
     {
         k = i % 7;
-        cV0 = c_cardValue[cards->at(k)];
-        suit = (int) c_cardSuit[cards->at(k)];
-        if (sFlushSize.at(suit) == 0)
+        cV0 = c_cardValue[(*cards)[k]];
+        suit = (int) c_cardSuit[(*cards)[k]];
+        if ((*sFlushSize)[suit] == 0)
         {
-            sFlush.at(suit).at(0) = k;
-            sFlushSize.at(suit) += 1;
+            (*sFlush)[suit][0] = k;
+            (*sFlushSize)[suit] += 1;
         }
-        else if (c_cardValue[sFlush.at(suit).back()] - 1 == cV0 ||
-                 c_cardValue[sFlush.at(suit).back()] + 12 == cV0)
+        else if (c_cardValue[(*sFlush)[suit].back()] - 1 == cV0 ||
+                 c_cardValue[(*sFlush)[suit].back()] + 12 == cV0)
         {
-            sFlush.at(suit).at(sFlushSize.at(suit)) = k;
-            sFlushSize.at(suit) += 1;
-            if (sFlushSize.at(suit) == 5)
+            (*sFlush)[suit][(*sFlushSize)[suit]] = k;
+            (*sFlushSize)[suit] += 1;
+            if ((*sFlushSize)[suit] == 5)
             {
                 handType->handIndex = STRAIGHT_FLUSH;
                 if (cV0 == 14)
                 {
                     for (int j = 0; j < 4; j++)
-                        handType->keyCardIndex.at(j + 1) = sFlush.at(suit).at(j);
-                    handType->keyCardIndex.at(0) = k;
+                        handType->keyCardIndex[j + 1] = (*sFlush)[suit][j];
+                    handType->keyCardIndex[0] = k;
                 }
                 else
                 {
                     for (int j = 0; j < 5; j++)
-                        handType->keyCardIndex.at(j) = sFlush.at(suit).at(j);
+                        handType->keyCardIndex[j] = (*sFlush)[suit][j];
                 }
                 return;
             }
         }
         else
         {
-            sFlush.at(suit).at(0) = k;
-            sFlushSize.at(suit) = 1;
+            (*sFlush)[suit][0] = k;
+            (*sFlushSize)[suit] = 1;
         }
     }
     return;
 }
 
-void findRoyalFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
+void findRoyalFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards,
+                    std::array<std::array<int, 5>, 4> *sFlush,
+                    std::array<int, 4> *sFlushSize)
 {
-    findStraightFlush(handType, cards);
+    findStraightFlush(handType, cards, sFlush, sFlushSize);
     if (handType->handIndex == STRAIGHT_FLUSH &&
-        c_cardValue[cards->at(handType->keyCardIndex.at(0))] == 14)
+        c_cardValue[(*cards)[handType->keyCardIndex[0]]] == 14)
         handType->handIndex = ROYAL_FLUSH;
     return;
 }
 
-void findHandType(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
+void findHandType(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards,
+                  std::array<std::array<int, 5>, 4> *sFlush,
+                  std::array<int, 4> *sFlushSize,
+                  std::array<int, 15> *straightMask)
 {
-    findRoyalFlush(handType, cards);
+    findRoyalFlush(handType, cards, sFlush, sFlushSize);
     if (handType->handIndex == ROYAL_FLUSH) {
         return;
     }
-    findStraightFlush(handType, cards);
+    findStraightFlush(handType, cards, sFlush, sFlushSize);
     if (handType->handIndex == STRAIGHT_FLUSH) {
         return;
     }
@@ -346,11 +401,11 @@ void findHandType(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards
     if (handType->handIndex == FULL_HOUSE) {
         return;
     }
-    findFlush(handType, cards);
+    findFlush(handType, cards, sFlush, sFlushSize);
     if (handType->handIndex == FLUSH) {
         return;
     }
-    findStraight(handType, cards);
+    findStraight(handType, cards, straightMask);
     if (handType->handIndex == STRAIGHT) {
         return;
     }
@@ -372,182 +427,213 @@ void findHandType(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards
 
 int hashGetValueArgs(std::array<int, 7> *cards)
 {
-    int k = 53;
     int hash = 0;
     for (int i = 0; i < 7; i++)
     {
-        hash = (cards->at(i)+1) * k;
+        hash = (hash+(*cards)[i]+1) * 100;
     }
     return hash;
 }
 
-std::unordered_map<int, std::unique_ptr<HandType>> handTypeCache;
-std::unique_ptr<HandType> pHandp;
-std::unique_ptr<HandType> eHandp;
-HandType pHand;
-HandType eHand;
-std::array<int, 7> pCards;
-std::array<int, 7> eCards;
-std::array<int, 5> cCards;
-int getValue(int p0, int p1, int e0, int e1, int c0, int c1, int c2, int c3, int c4)
+int getValue(std::array<int, 7> *pCards, std::array<int, 7> *eCards,
+             std::unordered_map<int, std::unique_ptr<HandType>> *handTypeCache,
+             std::array<std::array<int, 5>, 4> *sFlush,
+             std::array<int, 4> *sFlushSize,
+             std::array<int, 15> *straightMask)
 {
-    bool setFirstE = false;
-    bool setSecondE = false;
-    int j = 0;
-    for (int i = 0; i < 7; i++)
+    int pHash = hashGetValueArgs(pCards);
+    int eHash = hashGetValueArgs(eCards);
+    if (handTypeCache->find(pHash) == handTypeCache->end())
     {
-        if (!setFirstE && (j == 5 || e0 < cCards.at(j)))
-        {
-            setFirstE = true;
-            eCards.at(i) = e0;
-        }
-        else if (setFirstE && !setSecondE && (j == 5 || e1 < cCards.at(j)))
-        {
-            setSecondE = true;
-            eCards.at(i) = e1;
-        }
-        else
-        {
-            eCards.at(i) = cCards.at(j);
-            j += 1;
-        }
+        (*handTypeCache)[pHash] = std::unique_ptr<HandType> (new HandType);
+        findHandType((*handTypeCache)[pHash], pCards, sFlush, sFlushSize, straightMask);
     }
-    int pHash = hashGetValueArgs(&pCards);
-    int eHash = hashGetValueArgs(&eCards);
-    if (handTypeCache.find(pHash) == handTypeCache.end())
+    if (handTypeCache->find(eHash) == handTypeCache->end())
     {
-        handTypeCache[pHash] = std::unique_ptr<HandType> (new HandType);
-        findHandType(handTypeCache.at(pHash), &pCards);
+        (*handTypeCache)[eHash] = std::unique_ptr<HandType> (new HandType);
+        findHandType((*handTypeCache)[eHash], eCards, sFlush, sFlushSize, straightMask);
     }
-    if (handTypeCache.find(eHash) == handTypeCache.end())
-    {
-        handTypeCache[eHash] = std::unique_ptr<HandType> (new HandType);
-        findHandType(handTypeCache.at(eHash), &eCards);
-    }
-    pHand = *handTypeCache.at(pHash);
-    eHand = *handTypeCache.at(eHash);
-    if (pHand > eHand)
+    if (*(*handTypeCache)[pHash] > *(*handTypeCache)[eHash])
     {
         return 2;
     }
-    else if (eHand > pHand)
+    else if (*(*handTypeCache)[eHash] > *(*handTypeCache)[pHash])
     {
         return 0;
     }
-    else
-    {
-        return 1;
-    }
+    return 1;
 }
 
-unsigned long int compute4thRound(int limit)
+struct ComputeVars
+{
+    int i=0,i0=0,i1=0,i2=0,i3=0,i4=0,i5=0,i6=0,i7=0,i8=0;
+};
+
+void compute4thRound(int tid, int start, int limit, std::string fileName)
 {
     std::ofstream f;
-    f.open("4th_round_distributions.csv");
+    f.open(fileName);
     f << "hand0,hand1,cc0,cc1,cc2,cc3,cc4,b0,b1,b2,mean\n";
     int n = 52;
     int k = 2;
+    int v=0, sum=0, numCases=0;
     int count = 0;
+    int i=0, i0=0, i1=0, i2=0, i3=0, i4=0, i5=0, i6=0, i7=0, i8=0;
+    float mean=0.0f;
     unsigned long int innerCount = 0;
-    for (int i0 = 0; i0 < n - 2 + 1; i0++)
-    for (int i1 = i0 + 1; i1 < n - 2 + 2; i1++)
+    std::array<int, 3> buckets;
+    std::unordered_map<int, std::unique_ptr<HandType>> handTypeCache;
+    std::array<int, 5> cCards;
+    std::array<int, 7> pCards;
+    std::array<int, 7> eCards;
+    std::array<std::array<int, 5>, 4> sFlush;
+    std::array<int, 4> sFlushSize;
+    std::array<int, 15> straightMask;
+    for (i0 = 0; i0 < n - 2 + 1; i0++)
+    {
+    for (i1 = i0 + 1; i1 < n - 2 + 2; i1++)
     {
         c_inDeck[i0] = false;
         c_inDeck[i1] = false;
-        for (int i2 = 0; i2 < n - 5 + 1; i2++)
-        if (c_inDeck.at(i2))
-        for (int i3 = i2 + 1; i3 < n - 5 + 2; i3++)
-        if (c_inDeck.at(i3))
-        for (int i4 = i3 + 1; i4 < n - 5 + 3; i4++)
-        if (c_inDeck.at(i4))
-        for (int i5 = i4 + 1; i5 < n - 5 + 4; i5++)
-        if (c_inDeck.at(i5))
-        for (int i6 = i5 + 1; i6 < n - 5 + 5; i6++)
-        if (c_inDeck.at(i6))
+        for (i2 = 0; i2 < n - 5 + 1; i2++)
         {
+        if (c_inDeck[i2])
+        {
+        for (i3 = i2 + 1; i3 < n - 5 + 2; i3++)
+        {
+        if (c_inDeck[i3])
+        {
+        for (i4 = i3 + 1; i4 < n - 5 + 3; i4++)
+        {
+        if (c_inDeck[i4])
+        {
+        for (i5 = i4 + 1; i5 < n - 5 + 4; i5++)
+        {
+        if (c_inDeck[i5])
+        {
+        for (i6 = i5 + 1; i6 < n - 5 + 5; i6++)
+        {
+        if (c_inDeck[i6])
+        {
+            //printf("%d %d %d %d %d %d %d %d %d\n", i0, i1, i2, i3, i4, i5, i6, i7, i8);
+            if (count < start) {
+                count += 1;
+                continue;
+            }
+            //printf("tid: %d, count: %d\n", tid, count);
             c_inDeck[i2] = false;
             c_inDeck[i3] = false;
             c_inDeck[i4] = false;
             c_inDeck[i5] = false;
             c_inDeck[i6] = false;
             cCards = {i2, i3, i4, i5, i6};
-            bool setFirstP = false;
-            bool setSecondP = false;
-            int j = 0;
-            for (int i = 0; i < 7; i++)
-            {
-                if (!setFirstP && (j == 5 || i0 < cCards.at(j)))
-                {
-                    setFirstP = true;
-                    pCards.at(i) = i0;
-                }
-                else if (setFirstP && !setSecondP && (j == 5 || i1 < cCards.at(j)))
-                {
-                    setSecondP = true;
-                    pCards.at(i) = i1;
-                }
-                else
-                {
-                    pCards.at(i) = cCards.at(j);
-                    j += 1;
-                }
-            }
+            pCards = {i0, i1, i2, i3, i4, i5, i6};
             std::sort(pCards.begin(), pCards.end());
             count += 1;
-            int sum = 0;
-            int numCases = 0;
-            std::array<int, 3> buckets;
-            for (int i = 0; i < 3; i++)
-                buckets.at(i) = 0;
-            for (int i7 = 0; i7 < n - 2 + 1; i7++)
-            if (c_inDeck.at(i7))
-            for (int i8 = i7 + 1; i8 < n - 2 + 2; i8++)
-            if (c_inDeck.at(i8))
+            sum = 0;
+            numCases = 0;
+            for (i = 0; i < 3; i++)
+                buckets[i] = 0;
+            for (i7 = 0; i7 < n - 2 + 1; i7++)
+            if (c_inDeck[i7])
+            for (i8 = i7 + 1; i8 < n - 2 + 2; i8++)
+            if (c_inDeck[i8])
             {
-                int v = getValue(i0, i1, i7, i8, i2, i3, i4, i5, i6);
-                buckets.at(v) += 1;
+                eCards = {i7, i8, i2, i3, i4, i5, i6};
+                std::sort(eCards.begin(), eCards.end());
+                v = getValue(&pCards, &eCards, &handTypeCache,
+                             &sFlush, &sFlushSize, &straightMask);
+                buckets[v] += 1;
                 numCases += 1;
                 sum += v;
                 innerCount += 1;
             }
-            if (handTypeCache.size() >= 1758276) // (52 choose 2)^2
-                handTypeCache.clear();
-            float mean = (float) sum / (numCases * 2);
-            f << i0 << ',' << i1 << ',' << i2 << ',' << i3 << ',' << i4 << ',' << i5 << ',' << i6;
-            f << ',' << buckets.at(0) << ',' << buckets.at(1) << ',' << buckets.at(2) << ',' << mean << '\n';
-            if (count >= limit)
+            if (handTypeCache.size() > 14066208) // 8 * (52 choose 2) * (50 choose 2) : ~1 GB mem
             {
+                for (auto it = handTypeCache.begin(); it != handTypeCache.end(); it++)
+                {
+                    it->second.reset(nullptr);
+                }
+                handTypeCache.clear();
+            }
+            mean = (float) sum / (numCases * 2);
+            f << i0 << ',' << i1 << ',' << i2 << ',' << i3 << ',' << i4 << ',' << i5 << ',' << i6;
+            f << ',' << buckets[0] << ',' << buckets[1] << ',' << buckets[2] << ',' << mean << '\n';
+            if (limit > 0 && count >= limit)
+            {
+                printf("handTypeCache.size() = %d\n", handTypeCache.size());
                 f.close();
-                return innerCount;
+                return;
             }
             c_inDeck[i2] = true;
             c_inDeck[i3] = true;
             c_inDeck[i4] = true;
             c_inDeck[i5] = true;
             c_inDeck[i6] = true;
-        }
+        }}}}}}}}}}
         c_inDeck[i0] = true;
         c_inDeck[i1] = true;
-    }
+    }}
+    printf("handTypeCache.size() = %d\n", handTypeCache.size());
     f.close();
-    return innerCount;
+    return;
 }
 
 int main()
 {
     int T;
+    int numProcesses;
     printf("T:\n");
     std::cin >> T;
-    unsigned long int innerCount = compute4thRound(T);
-    HandType handType;
-    handType.handIndex = HIGH_CARD;
-    handType.keyCardIndex.at(0) = 52;
-    handType.keyCardIndex.at(1) = 52;
-    handType.keyCardIndex.at(2) = 52;
-    handType.keyCardIndex.at(3) = 52;
-    handType.keyCardIndex.at(4) = 52;
-    printf("sizeof(handType) = %d\n", sizeof(handType));
-    printf("innerCount = %d\n", innerCount);
-    printf("handTypeCache.size() = %d\n", handTypeCache.size());
+    printf("numProcesses:\n");
+    std::cin >> numProcesses;
+    //unsigned long int innerCount = compute4thRound(T, "4th_round_distributions.csv");
+
+    int tPerThread = T / numProcesses;
+    int tLast = 0;
+
+    int lastPID = 0;
+    int parentPID = getpid();
+    int pid;
+    for (pid = 0; pid < numProcesses - 1; pid++)
+    {
+        lastPID = fork();
+        printf("lastPID: %d\n");
+        if (lastPID == 0)
+        {
+            std::stringstream fileName;
+            fileName << std::setfill('0') << std::setw(3) << pid;
+            compute4thRound(pid, tLast, tLast + tPerThread,
+                            "distributions/_" + fileName.str() + ".csv");
+            break;
+        }
+        tLast += tPerThread;
+    }
+    if (lastPID > 0)
+    {
+        std::stringstream fileName;
+        fileName << std::setfill('0') << std::setw(3) << pid;
+        compute4thRound(pid, tLast, T, "distributions/_" + fileName.str() + ".csv");
+        printf("pid(%d) exited.\n", getpid());
+    } else {
+        printf("pid(%d) exited.\n", getpid());
+        return 0;
+    }
+
+    /*
+    std::vector<std::thread> threads;
+    for (int tid = 0; tid < numThreads; tid++)
+    {
+       threads.push_back(std::thread(compute4thRound, tid, tLast, tLast + tPerThread,
+                                     "distributions/_" + std::to_string(tid) + ".csv"));
+       tLast += tPerThread;
+    }
+    for (int tid = 0; tid < numThreads; tid++)
+    {
+        threads[tid].join();
+        printf("Thread %d joined.\n", tid);
+    }
+    */
     printf("Done computing.\n");
+    return 0;
 }

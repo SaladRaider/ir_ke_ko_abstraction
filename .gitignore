@@ -4,3 +4,4 @@
 build/compute_dist
 */callgrind.out.*
 *.includecache
+*calgrind.out.*

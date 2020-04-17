@@ -6,6 +6,8 @@ add_compile_options(-D_FORTIFY_SOURCE=2 -D_GLBICXX_ASSERTIONS
     -grecord-gcc-switches -O2 -pipe -Wall -Wextra -W -Wconversion
     -Wcast-align -Wunused -Wshadow -Wold-style-cast -Wpointer-arith -Wpedantic -std=c++17)
 
+add_link_options(-pthread)
+
 include_directories(src)
 file(GLOB SOURCES src/*.h src/*.cpp)
 add_executable(compute_dist src/main.cpp)
