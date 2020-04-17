@@ -489,43 +489,30 @@ void compute4thRound(int tid, int start, int limit, std::string fileName)
     std::array<std::array<int, 5>, 4> sFlush;
     std::array<int, 4> sFlushSize;
     std::array<int, 15> straightMask;
+        for (i2 = 0; i2 < n - 5 + 1; i2++)
+        for (i3 = i2 + 1; i3 < n - 5 + 2; i3++)
+        for (i4 = i3 + 1; i4 < n - 5 + 3; i4++)
+        for (i5 = i4 + 1; i5 < n - 5 + 4; i5++)
+        for (i6 = i5 + 1; i6 < n - 5 + 5; i6++)
+        {
+            c_inDeck[i2] = false;
+            c_inDeck[i3] = false;
+            c_inDeck[i4] = false;
+            c_inDeck[i5] = false;
+            c_inDeck[i6] = false;
     for (i0 = 0; i0 < n - 2 + 1; i0++)
-    {
+    if(c_inDeck[i0])
     for (i1 = i0 + 1; i1 < n - 2 + 2; i1++)
+    if (c_inDeck[i1])
     {
         c_inDeck[i0] = false;
         c_inDeck[i1] = false;
-        for (i2 = 0; i2 < n - 5 + 1; i2++)
-        {
-        if (c_inDeck[i2])
-        {
-        for (i3 = i2 + 1; i3 < n - 5 + 2; i3++)
-        {
-        if (c_inDeck[i3])
-        {
-        for (i4 = i3 + 1; i4 < n - 5 + 3; i4++)
-        {
-        if (c_inDeck[i4])
-        {
-        for (i5 = i4 + 1; i5 < n - 5 + 4; i5++)
-        {
-        if (c_inDeck[i5])
-        {
-        for (i6 = i5 + 1; i6 < n - 5 + 5; i6++)
-        {
-        if (c_inDeck[i6])
-        {
             //printf("%d %d %d %d %d %d %d %d %d\n", i0, i1, i2, i3, i4, i5, i6, i7, i8);
             if (count < start) {
                 count += 1;
                 continue;
             }
             //printf("tid: %d, count: %d\n", tid, count);
-            c_inDeck[i2] = false;
-            c_inDeck[i3] = false;
-            c_inDeck[i4] = false;
-            c_inDeck[i5] = false;
-            c_inDeck[i6] = false;
             cCards = {i2, i3, i4, i5, i6};
             pCards = {i0, i1, i2, i3, i4, i5, i6};
             std::sort(pCards.begin(), pCards.end());
@@ -548,7 +535,7 @@ void compute4thRound(int tid, int start, int limit, std::string fileName)
                 sum += v;
                 innerCount += 1;
             }
-            if (handTypeCache.size() > 14066208) // 8 * (52 choose 2) * (50 choose 2) : ~1 GB mem
+            if (handTypeCache.size() > 1081) // 52 choose 2 -old 8 * (52 choose 2) * (50 choose 2) : ~1 GB mem
             {
                 for (auto it = handTypeCache.begin(); it != handTypeCache.end(); it++)
                 {
@@ -565,15 +552,15 @@ void compute4thRound(int tid, int start, int limit, std::string fileName)
                 f.close();
                 return;
             }
+        c_inDeck[i0] = true;
+        c_inDeck[i1] = true;
+        }
             c_inDeck[i2] = true;
             c_inDeck[i3] = true;
             c_inDeck[i4] = true;
             c_inDeck[i5] = true;
             c_inDeck[i6] = true;
-        }}}}}}}}}}
-        c_inDeck[i0] = true;
-        c_inDeck[i1] = true;
-    }}
+    }
     printf("handTypeCache.size() = %d\n", handTypeCache.size());
     f.close();
     return;
@@ -592,7 +579,7 @@ int main()
     int tPerThread = T / numProcesses;
     int tLast = 0;
 
-    int lastPID = 0;
+    int lastPID = 1;
     int parentPID = getpid();
     int pid;
     for (pid = 0; pid < numProcesses - 1; pid++)
