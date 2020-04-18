@@ -514,7 +514,7 @@ struct ComputeVars
     int i=0,i0=0,i1=0,i2=0,i3=0,i4=0,i5=0,i6=0,i7=0,i8=0;
 };
 
-void compute4thRound(int tid, int start, int limit, std::string fileName)
+void compute4thRound(int tid, unsigned long int start, unsigned long int limit, std::string fileName)
 {
     std::ofstream f;
     f.open(fileName);
@@ -523,7 +523,7 @@ void compute4thRound(int tid, int start, int limit, std::string fileName)
     int n = 52;
     int k = 2;
     int v=0, sum=0, numCases=0, pHash;
-    int count = 0;
+    unsigned long int count = 0;
     int i=0, i0=0, i1=0, i2=0, i3=0, i4=0, i5=0, i6=0, i7=0, i8=0;
     float mean=0.0f;
     unsigned long int innerCount = 0;
@@ -628,22 +628,22 @@ void compute4thRound(int tid, int start, int limit, std::string fileName)
 
 int main()
 {
-    int T;
-    int numProcesses;
+    unsigned long int T;
+    unsigned long int numProcesses;
     printf("T:\n");
     std::cin >> T;
     printf("numProcesses:\n");
     std::cin >> numProcesses;
     //unsigned long int innerCount = compute4thRound(T, "4th_round_distributions.csv");
 
-    if (T < 0)
+    if (T > 2809475760)
     {
-        T = 133784560; // 52 choose 7
+        T = 2809475760; // 52 choose 7
     }
 
-    int tPerThread = T / numProcesses;
-    int tLast = 0;
-    printf("T=%d, tPerThread=%d\n", T, tPerThread);
+    unsigned long int tPerThread = T / numProcesses;
+    unsigned long int tLast = 0;
+    printf("T=%lu, tPerThread=%lu\n", T, tPerThread);
 
     int lastPID = 1;
     int parentPID = getpid();
@@ -656,7 +656,7 @@ int main()
         {
             std::stringstream fileName;
             fileName << std::setfill('0') << std::setw(3) << pid;
-            printf("preparing to write to %s for values between %d-%d\n", fileName.str().c_str(), tLast, tLast+tPerThread);
+            printf("preparing to write to %s for values between %lu-%lu\n", fileName.str().c_str(), tLast, tLast+tPerThread);
             compute4thRound(pid, tLast, tLast + tPerThread,
                             "distributions/_" + fileName.str() + ".csv");
             break;
@@ -667,7 +667,7 @@ int main()
     {
         std::stringstream fileName;
         fileName << std::setfill('0') << std::setw(3) << pid;
-            printf("preparing to write to %s for values between %d-%d\n", fileName.str().c_str(), tLast, T);
+            printf("preparing to write to %s for values between %lu-%lu\n", fileName.str().c_str(), tLast, T);
         compute4thRound(pid, tLast, T, "distributions/_" + fileName.str() + ".csv");
         while (numProcesses > 1) {
             int status;
