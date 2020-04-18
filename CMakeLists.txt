@@ -7,6 +7,14 @@ add_compile_options(-D_FORTIFY_SOURCE=2 -D_GLBICXX_ASSERTIONS
     -Wcast-align -Wunused -Wshadow -Wold-style-cast -Wpointer-arith -Wpedantic -std=c++17)
 
 add_link_options(-pthread)
+add_definitions("-fPIC")
+
+# set up boost
+set(Boost_USE_STATIC_LIBS OFF)
+set(Boost_USE_MULTITHREADED ON)
+find_package(Boost COMPONENTS program_options REQUIRED)
+include_directories(${Boost_INCLUDE_DIR})
+link_directories($Boost_LIBRARY_DIRS})
 
 include_directories(src)
 file(GLOB SOURCES src/*.h src/*.cpp)

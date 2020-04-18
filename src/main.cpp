@@ -103,6 +103,9 @@ void findHighCard(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards
 
 void findOnePair(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
+    handType->keyCardIndex[2] = -1;
+    handType->keyCardIndex[3] = -1;
+    handType->keyCardIndex[4] = -1;
     int j = 2;
     for (int i = 6; i >= 0; i--)
     if (i >= 1 && c_cardValue[(*cards)[i]] == c_cardValue[(*cards)[i - 1]])
@@ -122,6 +125,7 @@ void findOnePair(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 
 void findTwoPair(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
+    handType->keyCardIndex[4] = -1;
     for (int i = 6; i >= 0; i--)
     if (i >= 1 && c_cardValue[(*cards)[i]] == c_cardValue[(*cards)[i - 1]])
     {
@@ -489,29 +493,29 @@ void compute4thRound(int tid, int start, int limit, std::string fileName)
     std::array<std::array<int, 5>, 4> sFlush;
     std::array<int, 4> sFlushSize;
     std::array<int, 15> straightMask;
-        for (i2 = 0; i2 < n - 5 + 1; i2++)
-        for (i3 = i2 + 1; i3 < n - 5 + 2; i3++)
-        for (i4 = i3 + 1; i4 < n - 5 + 3; i4++)
-        for (i5 = i4 + 1; i5 < n - 5 + 4; i5++)
-        for (i6 = i5 + 1; i6 < n - 5 + 5; i6++)
-        {
-            c_inDeck[i2] = false;
-            c_inDeck[i3] = false;
-            c_inDeck[i4] = false;
-            c_inDeck[i5] = false;
-            c_inDeck[i6] = false;
-    for (i0 = 0; i0 < n - 2 + 1; i0++)
-    if(c_inDeck[i0])
-    for (i1 = i0 + 1; i1 < n - 2 + 2; i1++)
-    if (c_inDeck[i1])
+    for (i2 = 0; i2 < n - 5 + 1; i2++)
+    for (i3 = i2 + 1; i3 < n - 5 + 2; i3++)
+    for (i4 = i3 + 1; i4 < n - 5 + 3; i4++)
+    for (i5 = i4 + 1; i5 < n - 5 + 4; i5++)
+    for (i6 = i5 + 1; i6 < n - 5 + 5; i6++)
     {
-        c_inDeck[i0] = false;
-        c_inDeck[i1] = false;
+        c_inDeck[i2] = false;
+        c_inDeck[i3] = false;
+        c_inDeck[i4] = false;
+        c_inDeck[i5] = false;
+        c_inDeck[i6] = false;
+        for (i0 = 0; i0 < n - 2 + 1; i0++)
+        if(c_inDeck[i0])
+        for (i1 = i0 + 1; i1 < n - 2 + 2; i1++)
+        if (c_inDeck[i1])
+        {
             //printf("%d %d %d %d %d %d %d %d %d\n", i0, i1, i2, i3, i4, i5, i6, i7, i8);
             if (count < start) {
                 count += 1;
                 continue;
             }
+            c_inDeck[i0] = false;
+            c_inDeck[i1] = false;
             //printf("tid: %d, count: %d\n", tid, count);
             cCards = {i2, i3, i4, i5, i6};
             pCards = {i0, i1, i2, i3, i4, i5, i6};
@@ -552,14 +556,14 @@ void compute4thRound(int tid, int start, int limit, std::string fileName)
                 f.close();
                 return;
             }
-        c_inDeck[i0] = true;
-        c_inDeck[i1] = true;
+            c_inDeck[i0] = true;
+            c_inDeck[i1] = true;
         }
-            c_inDeck[i2] = true;
-            c_inDeck[i3] = true;
-            c_inDeck[i4] = true;
-            c_inDeck[i5] = true;
-            c_inDeck[i6] = true;
+        c_inDeck[i2] = true;
+        c_inDeck[i3] = true;
+        c_inDeck[i4] = true;
+        c_inDeck[i5] = true;
+        c_inDeck[i6] = true;
     }
     printf("handTypeCache.size() = %d\n", handTypeCache.size());
     f.close();
@@ -576,8 +580,14 @@ int main()
     std::cin >> numProcesses;
     //unsigned long int innerCount = compute4thRound(T, "4th_round_distributions.csv");
 
+    if (T < 0)
+    {
+        T = 133784560; // 52 choose 7
+    }
+
     int tPerThread = T / numProcesses;
     int tLast = 0;
+    printf("T=%d, tPerThread=%d\n", T, tPerThread);
 
     int lastPID = 1;
     int parentPID = getpid();
@@ -590,6 +600,7 @@ int main()
         {
             std::stringstream fileName;
             fileName << std::setfill('0') << std::setw(3) << pid;
+            printf("preparing to write to %s for values between %d-%d\n", fileName.str().c_str(), tLast, tLast+tPerThread);
             compute4thRound(pid, tLast, tLast + tPerThread,
                             "distributions/_" + fileName.str() + ".csv");
             break;
@@ -600,10 +611,11 @@ int main()
     {
         std::stringstream fileName;
         fileName << std::setfill('0') << std::setw(3) << pid;
+            printf("preparing to write to %s for values between %d-%d\n", fileName.str().c_str(), tLast, T);
         compute4thRound(pid, tLast, T, "distributions/_" + fileName.str() + ".csv");
-        printf("pid(%d) exited.\n", getpid());
+        printf("parent(%d) exited.\n", getpid());
     } else {
-        printf("pid(%d) exited.\n", getpid());
+        printf("child(%d) exited.\n", getpid());
         return 0;
     }
 
