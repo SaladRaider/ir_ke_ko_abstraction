@@ -77,6 +77,7 @@ std::array<bool, 52> c_inDeck = {
 
 struct HandType
 {
+    int handValue = 0;
     HandIndex handIndex;
     std::array<int, 5> keyCardIndex = {-1, -1, -1, -1, -1};
     
@@ -87,12 +88,15 @@ struct HandType
 
 bool operator> (const HandType &h1, const HandType &h2)
 {
+    return h1.handValue > h2.handValue;
+    /*
     if (h1.handIndex != h2.handIndex)
         return h1.handIndex > h2.handIndex;
     for (int i = 0; i < 4; i++)
     if (c_cardValue[h1.keyCardIndex[i]] != c_cardValue[h2.keyCardIndex[i]])
         return c_cardValue[h1.keyCardIndex[i]] > c_cardValue[h2.keyCardIndex[i]];
     return c_cardValue[h1.keyCardIndex[4]] > c_cardValue[h2.keyCardIndex[4]];
+    */
 }
 
 void findHighCard(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
@@ -456,12 +460,18 @@ int getValue(std::array<int, 7> *pCards, std::array<int, 7> *eCards,
     {
         (*handTypeCache)[pHash] = std::unique_ptr<HandType> (new HandType);
         findHandType((*handTypeCache)[pHash], pCards, sFlush, sFlushSize, straightMask);
+        int hash = ((*handTypeCache)[pHash]->handIndex) * 100;
+        for (int i = 0; i < 5; i++)
+        {
+            hash = (hash+(*handTypeCache)[pHash]->keyCardIndex[i]+1) * 100;
+        }
+        (*handTypeCache)[pHash]->handValue = hash;
         /*
         for (int i = 0; i < 5; i++) {
             if ((*handTypeCache)[pHash]->keyCardIndex[i] < 0 ||
                 (*handTypeCache)[pHash]->keyCardIndex[i] > 6) {
                 printf("ERROR: %d,%d,%d,%d,%d,%d\n",
-                       (*handTypeCache)[pHash]->handIndex,
+                       (*hadTypeCache)[pHash]->handIndex,
                        (*handTypeCache)[pHash]->keyCardIndex[0],
                        (*handTypeCache)[pHash]->keyCardIndex[1],
                        (*handTypeCache)[pHash]->keyCardIndex[2],
@@ -471,14 +481,22 @@ int getValue(std::array<int, 7> *pCards, std::array<int, 7> *eCards,
             }
         }
         */
-        for (int i = 0; i < 5; i++) {
-            (*handTypeCache)[pHash]->keyCardIndex[i] = (*pCards)[(*handTypeCache)[pHash]->keyCardIndex[i]];
-        }
+        (*handTypeCache)[pHash]->keyCardIndex[0] = (*pCards)[(*handTypeCache)[pHash]->keyCardIndex[0]];
+        (*handTypeCache)[pHash]->keyCardIndex[1] = (*pCards)[(*handTypeCache)[pHash]->keyCardIndex[1]];
+        (*handTypeCache)[pHash]->keyCardIndex[2] = (*pCards)[(*handTypeCache)[pHash]->keyCardIndex[2]];
+        (*handTypeCache)[pHash]->keyCardIndex[3] = (*pCards)[(*handTypeCache)[pHash]->keyCardIndex[3]];
+        (*handTypeCache)[pHash]->keyCardIndex[4] = (*pCards)[(*handTypeCache)[pHash]->keyCardIndex[4]];
     }
     if (handTypeCache->find(eHash) == handTypeCache->end())
     {
         (*handTypeCache)[eHash] = std::unique_ptr<HandType> (new HandType);
         findHandType((*handTypeCache)[eHash], eCards, sFlush, sFlushSize, straightMask);
+        int hash = ((*handTypeCache)[eHash]->handIndex) * 100;
+        for (int i = 0; i < 5; i++)
+        {
+            hash = (hash+(*handTypeCache)[eHash]->keyCardIndex[i]+1) * 100;
+        }
+        (*handTypeCache)[eHash]->handValue = hash;
         /*
         for (int i = 0; i < 5; i++) {
             if ((*handTypeCache)[eHash]->keyCardIndex[i] < 0 ||
@@ -494,9 +512,11 @@ int getValue(std::array<int, 7> *pCards, std::array<int, 7> *eCards,
             }
         }
         */
-        for (int i = 0; i < 5; i++) {
-            (*handTypeCache)[eHash]->keyCardIndex[i] = (*eCards)[(*handTypeCache)[eHash]->keyCardIndex[i]];
-        }
+        (*handTypeCache)[eHash]->keyCardIndex[0] = (*eCards)[(*handTypeCache)[eHash]->keyCardIndex[0]];
+        (*handTypeCache)[eHash]->keyCardIndex[1] = (*eCards)[(*handTypeCache)[eHash]->keyCardIndex[1]];
+        (*handTypeCache)[eHash]->keyCardIndex[2] = (*eCards)[(*handTypeCache)[eHash]->keyCardIndex[2]];
+        (*handTypeCache)[eHash]->keyCardIndex[3] = (*eCards)[(*handTypeCache)[eHash]->keyCardIndex[3]];
+        (*handTypeCache)[eHash]->keyCardIndex[4] = (*eCards)[(*handTypeCache)[eHash]->keyCardIndex[4]];
     }
     if (*(*handTypeCache)[pHash] > *(*handTypeCache)[eHash])
     {
@@ -565,8 +585,7 @@ void compute4thRound(int tid, int start, int limit, std::string fileName)
             count += 1;
             sum = 0;
             numCases = 0;
-            for (i = 0; i < 3; i++)
-                buckets[i] = 0;
+            buckets.fill(0);
             for (i7 = 0; i7 < n - 2 + 1; i7++)
             if (c_inDeck[i7])
             for (i8 = i7 + 1; i8 < n - 2 + 2; i8++)
@@ -579,7 +598,6 @@ void compute4thRound(int tid, int start, int limit, std::string fileName)
                 buckets[v] += 1;
                 numCases += 1;
                 sum += v;
-                innerCount += 1;
             }
             if (handTypeCache.size() > 1081) // 52 choose 2 -old 8 * (52 choose 2) * (50 choose 2) : ~1 GB mem
             {
