@@ -638,7 +638,7 @@ int main()
 
     if (T < 0)
     {
-        T = 133784560; // 52 choose 7
+        T = 2809475760; // 52 choose 5 * 47 choose 2
     }
 
     int tPerThread = T / numProcesses;
