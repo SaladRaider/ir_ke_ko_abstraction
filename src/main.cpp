@@ -346,8 +346,8 @@ void findStraightFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *
             (*sFlush)[suit][0] = k;
             (*sFlushSize)[suit] += 1;
         }
-        else if (c_cardValue[(*sFlush)[suit].back()] - 1 == cV0 ||
-                 c_cardValue[(*sFlush)[suit].back()] + 12 == cV0)
+        else if (c_cardValue[(*sFlush)[suit][(*sFlushSize)[suit] - 1]] - 1 == cV0 ||
+                 c_cardValue[(*sFlush)[suit][(*sFlushSize)[suit] - 1]] + 12 == cV0)
         {
             (*sFlush)[suit][(*sFlushSize)[suit]] = k;
             (*sFlushSize)[suit] += 1;
