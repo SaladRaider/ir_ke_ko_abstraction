@@ -2,9 +2,10 @@
 #include <iomanip>
 #include <sstream>
 #include <fstream>
-#include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <thread>
 #include <memory>
 #include <algorithm>
@@ -89,7 +90,7 @@ bool operator> (const HandType &h1, const HandType &h2)
     if (h1.handIndex != h2.handIndex)
         return h1.handIndex > h2.handIndex;
     for (int i = 0; i < 4; i++)
-    if (h1.keyCardIndex[i] != h2.keyCardIndex[i])
+    if (c_cardValue[h1.keyCardIndex[i]] != c_cardValue[h2.keyCardIndex[i]])
         return c_cardValue[h1.keyCardIndex[i]] > c_cardValue[h2.keyCardIndex[i]];
     return c_cardValue[h1.keyCardIndex[4]] > c_cardValue[h2.keyCardIndex[4]];
 }
@@ -106,16 +107,18 @@ void findOnePair(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
     handType->keyCardIndex[2] = -1;
     handType->keyCardIndex[3] = -1;
     handType->keyCardIndex[4] = -1;
+    handType->handIndex = HIGH_CARD;
     int j = 2;
     for (int i = 6; i >= 0; i--)
-    if (i >= 1 && c_cardValue[(*cards)[i]] == c_cardValue[(*cards)[i - 1]])
+    if (i >= 1 && handType->handIndex != ONE_PAIR &&
+        c_cardValue[(*cards)[i]] == c_cardValue[(*cards)[i - 1]])
     {
         handType->handIndex = ONE_PAIR;
         handType->keyCardIndex[0] = i;
         handType->keyCardIndex[1] = i - 1;
         i -= 1;
     }
-    else if (j < 5 && handType->keyCardIndex[j] != -1)
+    else if (j < 5 && handType->keyCardIndex[j] == -1)
     {
         handType->keyCardIndex[j] = i; 
         j += 1;
@@ -126,6 +129,8 @@ void findOnePair(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 void findTwoPair(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
     handType->keyCardIndex[4] = -1;
+    handType->keyCardIndex[0] = -1;
+    handType->keyCardIndex[2] = -1;
     for (int i = 6; i >= 0; i--)
     if (i >= 1 && c_cardValue[(*cards)[i]] == c_cardValue[(*cards)[i - 1]])
     {
@@ -134,7 +139,7 @@ void findTwoPair(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
             handType->keyCardIndex[0] = i;
             handType->keyCardIndex[1] = i - 1;
         }
-        if (handType->keyCardIndex[2] == -1)
+        else if (handType->keyCardIndex[2] == -1)
         {
             handType->handIndex = TWO_PAIR;
             handType->keyCardIndex[2] = i;
@@ -152,8 +157,9 @@ void findThreeOfAKind(std::unique_ptr<HandType> &handType, std::array<int, 7> *c
     int j = 3;
     handType->keyCardIndex[3] = -1;
     handType->keyCardIndex[4] = -1;
+    handType->handIndex = HIGH_CARD;
     for (int i = 6; i >= 0; i--)
-    if (i >= 2 &&
+    if (i >= 2 && handType->handIndex != THREE_OF_A_KIND &&
         c_cardValue[(*cards)[i]] == c_cardValue[(*cards)[i - 1]] &&
         c_cardValue[(*cards)[i]] == c_cardValue[(*cards)[i - 2]])
     {
@@ -161,7 +167,6 @@ void findThreeOfAKind(std::unique_ptr<HandType> &handType, std::array<int, 7> *c
         handType->keyCardIndex[0] = i;
         handType->keyCardIndex[1] = i - 1;
         handType->keyCardIndex[2] = i - 2;
-        return;
     }
     else if (j < 5 && handType->keyCardIndex[j] == -1)
     {
@@ -174,8 +179,9 @@ void findThreeOfAKind(std::unique_ptr<HandType> &handType, std::array<int, 7> *c
 void findFourOfAKind(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
     handType->keyCardIndex[4] = -1;
+    handType->handIndex = HIGH_CARD;
     for (int i = 6; i >= 0; i--)
-    if (i >= 3 &&
+    if (i >= 3 && handType->handIndex != FOUR_OF_A_KIND &&
         c_cardValue[(*cards)[i]] == c_cardValue[(*cards)[i - 1]] &&
         c_cardValue[(*cards)[i]] == c_cardValue[(*cards)[i - 2]] &&
         c_cardValue[(*cards)[i]] == c_cardValue[(*cards)[i - 3]])
@@ -185,7 +191,6 @@ void findFourOfAKind(std::unique_ptr<HandType> &handType, std::array<int, 7> *ca
         handType->keyCardIndex[1] = i - 1;
         handType->keyCardIndex[2] = i - 2;
         handType->keyCardIndex[3] = i - 3;
-        return;
     }
     else if (handType->keyCardIndex[4] == -1)
         handType->keyCardIndex[4] = i;
@@ -206,6 +211,7 @@ void findFullHouse(std::unique_ptr<HandType> &handType, std::array<int, 7> *card
         handType->handIndex = FULL_HOUSE;
         handType->keyCardIndex[3] = i;
         handType->keyCardIndex[4] = i - 1;
+        return;
     }
     return;
 }
@@ -219,12 +225,9 @@ void findFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards,
     for (int i = 6; i >= 0; i--)
     {
         suit = c_cardSuit[(*cards)[i]];
-        if ((*suitIdxSize)[suit] < 5)
-        {
-            (*suitIdx)[suit][(*suitIdxSize)[suit]] = i;
-            (*suitIdxSize)[suit] += 1;
-        }   
-        else
+        (*suitIdx)[suit][(*suitIdxSize)[suit]] = i;
+        (*suitIdxSize)[suit] += 1;
+        if ((*suitIdxSize)[suit] == 5)
         {
             handType->handIndex = FLUSH;
             for (int j = 4; j >= 0; j--)
@@ -247,13 +250,13 @@ void findStraight(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards
     for (int i = 0; i < 7; i++)
     {
         cardValue = c_cardValue[(*cards)[i]];
-        (*straightMask)[cardValue] = (*cards)[i];
+        (*straightMask)[cardValue] = i;
     }
     if ((*straightMask)[14] != -1 &&
-        (*straightMask)[13] != -1 &&
-        (*straightMask)[12] != -1 &&
-        (*straightMask)[11] != -1 &&
-        (*straightMask)[10] != -1)
+        (*straightMask)[2] != -1 &&
+        (*straightMask)[3] != -1 &&
+        (*straightMask)[4] != -1 &&
+        (*straightMask)[5] != -1)
     {
         handType->handIndex = STRAIGHT;
         handType->keyCardIndex[0] = (*straightMask)[14];
@@ -263,7 +266,7 @@ void findStraight(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards
         handType->keyCardIndex[4] = (*straightMask)[5];
     }
     int count = 0;
-    for (int i = 14; i >= 6; i--)
+    for (int i = 14; i >= 2; i--)
     {
         if ((*straightMask)[i] != -1)
         {
@@ -276,6 +279,7 @@ void findStraight(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards
                 handType->keyCardIndex[2] = (*straightMask)[i + 2];
                 handType->keyCardIndex[3] = (*straightMask)[i + 1];
                 handType->keyCardIndex[4] = (*straightMask)[i];
+                return;
             }
         }
         else
@@ -379,7 +383,8 @@ void findRoyalFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *car
 {
     findStraightFlush(handType, cards, sFlush, sFlushSize);
     if (handType->handIndex == STRAIGHT_FLUSH &&
-        c_cardValue[(*cards)[handType->keyCardIndex[0]]] == 14)
+        c_cardValue[(*cards)[handType->keyCardIndex[0]]] == 14 &&
+        c_cardValue[(*cards)[handType->keyCardIndex[4]]] == 10)
         handType->handIndex = ROYAL_FLUSH;
     return;
 }
@@ -451,11 +456,47 @@ int getValue(std::array<int, 7> *pCards, std::array<int, 7> *eCards,
     {
         (*handTypeCache)[pHash] = std::unique_ptr<HandType> (new HandType);
         findHandType((*handTypeCache)[pHash], pCards, sFlush, sFlushSize, straightMask);
+        /*
+        for (int i = 0; i < 5; i++) {
+            if ((*handTypeCache)[pHash]->keyCardIndex[i] < 0 ||
+                (*handTypeCache)[pHash]->keyCardIndex[i] > 6) {
+                printf("ERROR: %d,%d,%d,%d,%d,%d\n",
+                       (*handTypeCache)[pHash]->handIndex,
+                       (*handTypeCache)[pHash]->keyCardIndex[0],
+                       (*handTypeCache)[pHash]->keyCardIndex[1],
+                       (*handTypeCache)[pHash]->keyCardIndex[2],
+                       (*handTypeCache)[pHash]->keyCardIndex[3],
+                       (*handTypeCache)[pHash]->keyCardIndex[4]
+                );
+            }
+        }
+        */
+        for (int i = 0; i < 5; i++) {
+            (*handTypeCache)[pHash]->keyCardIndex[i] = (*pCards)[(*handTypeCache)[pHash]->keyCardIndex[i]];
+        }
     }
     if (handTypeCache->find(eHash) == handTypeCache->end())
     {
         (*handTypeCache)[eHash] = std::unique_ptr<HandType> (new HandType);
         findHandType((*handTypeCache)[eHash], eCards, sFlush, sFlushSize, straightMask);
+        /*
+        for (int i = 0; i < 5; i++) {
+            if ((*handTypeCache)[eHash]->keyCardIndex[i] < 0 ||
+                (*handTypeCache)[eHash]->keyCardIndex[i] > 6) {
+                printf("ERROR: %d,%d,%d,%d,%d,%d\n",
+                       (*handTypeCache)[eHash]->handIndex,
+                       (*handTypeCache)[eHash]->keyCardIndex[0],
+                       (*handTypeCache)[eHash]->keyCardIndex[1],
+                       (*handTypeCache)[eHash]->keyCardIndex[2],
+                       (*handTypeCache)[eHash]->keyCardIndex[3],
+                       (*handTypeCache)[eHash]->keyCardIndex[4]
+                );
+            }
+        }
+        */
+        for (int i = 0; i < 5; i++) {
+            (*handTypeCache)[eHash]->keyCardIndex[i] = (*eCards)[(*handTypeCache)[eHash]->keyCardIndex[i]];
+        }
     }
     if (*(*handTypeCache)[pHash] > *(*handTypeCache)[eHash])
     {
@@ -478,9 +519,10 @@ void compute4thRound(int tid, int start, int limit, std::string fileName)
     std::ofstream f;
     f.open(fileName);
     f << "hand0,hand1,cc0,cc1,cc2,cc3,cc4,b0,b1,b2,mean\n";
+    //f << "hand0,hand1,cc0,cc1,cc2,cc3,cc4,handIndex,h0,h1,h2,h3,h4\n";
     int n = 52;
     int k = 2;
-    int v=0, sum=0, numCases=0;
+    int v=0, sum=0, numCases=0, pHash;
     int count = 0;
     int i=0, i0=0, i1=0, i2=0, i3=0, i4=0, i5=0, i6=0, i7=0, i8=0;
     float mean=0.0f;
@@ -550,6 +592,20 @@ void compute4thRound(int tid, int start, int limit, std::string fileName)
             mean = (float) sum / (numCases * 2);
             f << i0 << ',' << i1 << ',' << i2 << ',' << i3 << ',' << i4 << ',' << i5 << ',' << i6;
             f << ',' << buckets[0] << ',' << buckets[1] << ',' << buckets[2] << ',' << mean << '\n';
+            /*
+            eCards = {i7, i8, i2, i3, i4, i5, i6};
+            std::sort(eCards.begin(), eCards.end());
+            v = getValue(&pCards, &eCards, &handTypeCache,
+                         &sFlush, &sFlushSize, &straightMask);
+            pHash = hashGetValueArgs(&pCards);
+            f << i0 << ',' << i1 << ',' << i2 << ',' << i3 << ',' << i4 << ',' << i5 << ',' << i6;
+            f << ',' << handTypeCache[pHash]->handIndex;
+            f << ',' << handTypeCache[pHash]->keyCardIndex[0];
+            f << ',' << handTypeCache[pHash]->keyCardIndex[1];
+            f << ',' << handTypeCache[pHash]->keyCardIndex[2];
+            f << ',' << handTypeCache[pHash]->keyCardIndex[3];
+            f << ',' << handTypeCache[pHash]->keyCardIndex[4] << '\n';
+            */
             if (limit > 0 && count >= limit)
             {
                 printf("handTypeCache.size() = %d\n", handTypeCache.size());
@@ -613,6 +669,17 @@ int main()
         fileName << std::setfill('0') << std::setw(3) << pid;
             printf("preparing to write to %s for values between %d-%d\n", fileName.str().c_str(), tLast, T);
         compute4thRound(pid, tLast, T, "distributions/_" + fileName.str() + ".csv");
+        while (numProcesses > 1) {
+            int status;
+            pid_t done = wait(&status);
+            if (done == -1) {
+                if (errno == ECHILD) break;
+            } else {
+                if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+                    std::cerr << "pid " << done << " failed\n";
+                }
+            }
+        }
         printf("parent(%d) exited.\n", getpid());
     } else {
         printf("child(%d) exited.\n", getpid());
