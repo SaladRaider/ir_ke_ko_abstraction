@@ -9,14 +9,9 @@ add_compile_options(-D_FORTIFY_SOURCE=2 -D_GLBICXX_ASSERTIONS
 add_link_options(-pthread)
 add_definitions("-fPIC")
 
-# set up boost
-set(Boost_USE_STATIC_LIBS OFF)
-set(Boost_USE_MULTITHREADED ON)
-find_package(Boost COMPONENTS program_options REQUIRED)
-include_directories(${Boost_INCLUDE_DIR})
-link_directories($Boost_LIBRARY_DIRS})
-
 include_directories(src)
 file(GLOB SOURCES src/*.h src/*.cpp)
-add_executable(compute_dist src/main.cpp)
-target_compile_features(compute_dist PRIVATE cxx_lambda_init_captures)
+add_executable(4th_compute_dist src/4th_round/main.cpp)
+add_executable(3rd_compute_dist src/3rd_round/main.cpp)
+target_compile_features(4th_compute_dist PRIVATE cxx_lambda_init_captures)
+target_compile_features(3rd_compute_dist PRIVATE cxx_lambda_init_captures)

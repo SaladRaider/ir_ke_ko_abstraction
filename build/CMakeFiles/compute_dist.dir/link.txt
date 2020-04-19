@@ -1,1 +1,0 @@
-/usr/bin/clang++    -pthread CMakeFiles/compute_dist.dir/src/main.cpp.o  -o compute_dist   -L"/home/peter/code/personal_projects/poker_bot/ir_ke_ko_abstraction/\$Boost_LIBRARY_DIRS}" 

@@ -5,3 +5,8 @@ build/compute_dist
 */callgrind.out.*
 *.includecache
 *calgrind.out.*
+.DS_Store
+CMakeFiles
+CmakeCache.txt
+Makefile
+cmake_install.cmake
