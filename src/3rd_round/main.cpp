@@ -94,11 +94,11 @@ void compute3rdRound(unsigned long start, unsigned long stop, std::string fileIn
             bucketIdx = size_t(floor(mean * 50));
             if (bucketIdx == 50)
                 bucketIdx = 49;
-            buckets[getHash(p0, p1, c0, c1, c2, c3)][bucketIdx] += 1;
-            buckets[getHash(p0, p1, c0, c1, c2, c4)][bucketIdx] += 1;
-            buckets[getHash(p0, p1, c0, c1, c3, c4)][bucketIdx] += 1;
-            buckets[getHash(p0, p1, c0, c2, c3, c4)][bucketIdx] += 1;
-            buckets[getHash(p0, p1, c1, c2, c3, c4)][bucketIdx] += 1;
+            buckets[getHash(p0, p1, c0, c1, c2, c3)][bucketIdx] += int8_t(1);
+            buckets[getHash(p0, p1, c0, c1, c2, c4)][bucketIdx] += int8_t(1);
+            buckets[getHash(p0, p1, c0, c1, c3, c4)][bucketIdx] += int8_t(1);
+            buckets[getHash(p0, p1, c0, c2, c3, c4)][bucketIdx] += int8_t(1);
+            buckets[getHash(p0, p1, c1, c2, c3, c4)][bucketIdx] += int8_t(1);
             count += 1;
             if (count >= stop) {
                 printf("Processed %lu-%lu of %s.\n", start, stop, fileInName.c_str());

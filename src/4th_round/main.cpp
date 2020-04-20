@@ -79,7 +79,7 @@ struct HandType
 {
     int handValue = 0;
     HandIndex handIndex;
-    std::array<int, 5> keyCardIndex = {-1, -1, -1, -1, -1};
+    std::array<int, 5> keyCardIndex;
     
     HandType()
         : handIndex(NO_HAND) {};
