@@ -123,9 +123,9 @@ void saveBuckets(size_t start, size_t stop, std::string fileOutName) {
     f.open(fileOutName);
     for (size_t i = start; i < stop; i++) {
         for (size_t j = 0; j < 49; j++) {
-            f << buckets[i][j] << ' ';
+            f << int(buckets[i][j]) << ' ';
         }
-        f << buckets[i][49] << '\n';
+        f << int(buckets[i][49]) << '\n';
     }
     f.close();
 }
