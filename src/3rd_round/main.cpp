@@ -163,7 +163,8 @@ int main() {
 
     int lastPID = 1;
     pid = 0;
-    tPerThread = 305377800 / numProcesses;
+    T = 305377800;
+    tPerThread = T / numProcesses;
     tLast = 0;
     for (pid = 0; pid < numProcesses - 1; pid++)
     {

@@ -7,7 +7,7 @@ build/compute_dist
 *calgrind.out.*
 .DS_Store
 CMakeFiles
-CmakeCache.txt
+CMakeCache.txt
 Makefile
 cmake_install.cmake
 *_compute_dist
