@@ -155,12 +155,12 @@ int main() {
         fileInName << std::setfill('0') << std::setw(3) << pid;
         printf("preparing to read from %s for values between %lu-%lu\n",
                 fileInName.str().c_str(), tLast, tLast+tPerThread);
-        compute3rdRound(tLast, tLast + tPerThread, "distributions/_" + fileInName.str() + ".csv");
+        compute3rdRound(tLast, tLast + tPerThread, "distributions_4th_upstream/_" + fileInName.str() + ".csv");
     }
     std::stringstream fileInName;
     fileInName << std::setfill('0') << std::setw(3) << pid;
         printf("preparing to read from %s for values between %lu-%lu\n", fileInName.str().c_str(), tLast, T);
-    compute3rdRound(tLast, T, "distributions/_" + fileInName.str() + ".csv");
+    compute3rdRound(tLast, T, "distributions_4th_upstream/_" + fileInName.str() + ".csv");
 
     int lastPID = 1;
     pid = 0;
