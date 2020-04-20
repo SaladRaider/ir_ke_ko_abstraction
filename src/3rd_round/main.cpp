@@ -148,6 +148,10 @@ int main() {
     printf("T=%lu, tPerThread=%lu\n", T, tPerThread);
     printf("Starting computation...\n");
 
+    for (size_t i = 0; i < buckets.size(); i++) {
+        buckets[i].fill(int8_t(0));
+    }
+
     size_t pid;
     for (pid = 0; pid < numProcesses - 1; pid++)
     {
