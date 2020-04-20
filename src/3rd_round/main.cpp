@@ -156,6 +156,7 @@ int main() {
         printf("preparing to read from %s for values between %lu-%lu\n",
                 fileInName.str().c_str(), tLast, tLast+tPerThread);
         compute3rdRound(tLast, tLast + tPerThread, "distributions_4th_upstream/_" + fileInName.str() + ".csv");
+        tLast += tPerThread;
     }
     std::stringstream fileInName;
     fileInName << std::setfill('0') << std::setw(3) << pid;
