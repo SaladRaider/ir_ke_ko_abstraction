@@ -142,14 +142,15 @@ void findTwoPair(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
         {
             handType->keyCardIndex[0] = i;
             handType->keyCardIndex[1] = i - 1;
+            i -= 1;
         }
         else if (handType->keyCardIndex[2] == -1)
         {
             handType->handIndex = TWO_PAIR;
             handType->keyCardIndex[2] = i;
             handType->keyCardIndex[3] = i - 1;
+            i -= 1;
         }
-        i -= 1;
     }
     else if (handType->keyCardIndex[4] == -1)
         handType->keyCardIndex[4] = i;
@@ -171,6 +172,7 @@ void findThreeOfAKind(std::unique_ptr<HandType> &handType, std::array<int, 7> *c
         handType->keyCardIndex[0] = i;
         handType->keyCardIndex[1] = i - 1;
         handType->keyCardIndex[2] = i - 2;
+        i -= 2;
     }
     else if (j < 5 && handType->keyCardIndex[j] == -1)
     {
@@ -195,6 +197,7 @@ void findFourOfAKind(std::unique_ptr<HandType> &handType, std::array<int, 7> *ca
         handType->keyCardIndex[1] = i - 1;
         handType->keyCardIndex[2] = i - 2;
         handType->keyCardIndex[3] = i - 3;
+        i -= 3;
     }
     else if (handType->keyCardIndex[4] == -1)
         handType->keyCardIndex[4] = i;
