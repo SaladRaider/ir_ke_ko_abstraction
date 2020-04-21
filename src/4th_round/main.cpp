@@ -644,12 +644,6 @@ int main()
     unsigned long tPerThread = T / numProcesses;
     unsigned long tLast = 0;
     printf("T=%lu, tPerThread=%lu\n", T, tPerThread);
-    std::stringstream fileName;
-    fileName << std::setfill('0') << std::setw(3) << 0;
-    printf("preparing to write to %s for values between %lu-%lu\n", fileName.str().c_str(), 2809415221, 2809415223);
-    compute4thRound(0, 2809415221, 2809415223,
-                    "distributions/_" + fileName.str() + ".csv");
-    /*
     int lastPID = 1;
     int parentPID = getpid();
     int pid;
@@ -689,7 +683,7 @@ int main()
     } else {
         printf("child(%d) exited.\n", getpid());
         return 0;
-    }*/
+    }
 
     /*
     std::vector<std::thread> threads;
