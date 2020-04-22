@@ -67,6 +67,8 @@ void compute3rdRound(unsigned long start, unsigned long stop, std::string fileIn
     unsigned long count = 0;
     unsigned long printInterval = 27014190;
     size_t p0, p1, c0, c1, c2, c3, c4, bucketIdx;
+    size_t h0, h1, h2, h3, h4;
+    size_t h = 2256;
     float mean;
     std::ifstream infile;
     std::string fileBuffer;
@@ -96,11 +98,20 @@ void compute3rdRound(unsigned long start, unsigned long stop, std::string fileIn
             bucketIdx = size_t(floor(mean * 50));
             if (bucketIdx == 50)
                 bucketIdx = 49;
-            buckets[getHash(p0, p1, c0, c1, c2, c3)][bucketIdx] += int8_t(1);
-            buckets[getHash(p0, p1, c0, c1, c2, c4)][bucketIdx] += int8_t(1);
-            buckets[getHash(p0, p1, c0, c1, c3, c4)][bucketIdx] += int8_t(1);
-            buckets[getHash(p0, p1, c0, c2, c3, c4)][bucketIdx] += int8_t(1);
-            buckets[getHash(p0, p1, c1, c2, c3, c4)][bucketIdx] += int8_t(1);
+            h0 = getHash(p0,p1,c0,c1,c2,c3);
+            h1 = getHash(p0,p1,c0,c1,c2,c4);
+            h2 = getHash(p0,p1,c0,c1,c3,c4);
+            h3 = getHash(p0,p1,c0,c2,c3,c4);
+            h4 = getHash(p0,p1,c1,c2,c3,c4);
+            buckets[h0][bucketIdx] += int8_t(1);
+            buckets[h1][bucketIdx] += int8_t(1);
+            buckets[h2][bucketIdx] += int8_t(1);
+            buckets[h3][bucketIdx] += int8_t(1);
+            buckets[h4][bucketIdx] += int8_t(1);
+            if (h0==h||h1==h||h2==h||h3==h||h4==h) {
+                printf("%lu: (%zu,%zu) (%zu,%zu,%zu,%zu,%zu) [%zu,%zu,%zu,%zu,%zu] [%f -> %zu]\n",
+                        count,p0,p1,c0,c1,c2,c3,c4,h0,h1,h2,h3,h4,mean,bucketIdx);
+            }
             if (count % printInterval == 0) {
                 printf("(%zu,%zu) (%zu,%zu,%zu,%zu,%zu), [%zu,%zu,%zu,%zu,%zu] [%s -> %f -> %zu]\n",
                        p0,p1,c0,c1,c2,c3,c4,

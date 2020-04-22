@@ -61,6 +61,7 @@ void compute2ndRound(unsigned long start, unsigned long stop, std::string fileIn
     unsigned long count = 0;
     unsigned long printInterval = 2936325;
     size_t p0, p1, c0, c1, c2, c3, i;
+    size_t h0, h1, h2, h3;
     unsigned int bucketVal;
     std::ifstream infile;
     std::string fileBuffer;
@@ -83,20 +84,28 @@ void compute2ndRound(unsigned long start, unsigned long stop, std::string fileIn
             }
             std::getline(infile, fileBuffer);
             std::istringstream iss(fileBuffer);
+            h0 = getHash(p0,p1,c0,c1,c2);
+            h1 = getHash(p0,p1,c0,c1,c3);
+            h2 = getHash(p0,p1,c0,c2,c3);
+            h3 = getHash(p0,p1,c1,c2,c3);
+            if (h0==0||h1==0||h2==0||h3==0) {
+                printf("%lu: (%zu,%zu) (%zu,%zu,%zu,%zu) [%zu,%zu,%zu,%zu]\nbuckets:[",
+                       count,p0,p1,c0,c1,c2,c3,h0,h1,h2,h3);
+            }
             for (i = 0; i < c_numBuckets; i++) {
                 iss >> bucketVal;
-                buckets[getHash(p0, p1, c0, c1, c2)][i] += bucketVal;
-                buckets[getHash(p0, p1, c0, c1, c3)][i] += bucketVal;
-                buckets[getHash(p0, p1, c0, c2, c3)][i] += bucketVal;
-                buckets[getHash(p0, p1, c1, c2, c3)][i] += bucketVal;
+                buckets[h0][i] += bucketVal;
+                buckets[h1][i] += bucketVal;
+                buckets[h2][i] += bucketVal;
+                buckets[h3][i] += bucketVal;
+                if (h0==0||h1==0||h2==0||h3==0)
+                    printf("%u ", bucketVal);
             }
+            if (h0==0||h1==0||h2==0||h3==0)
+                printf("]\n");
             if (count % printInterval == 0) {
                 printf("(%zu,%zu) (%zu,%zu,%zu,%zu), [%zu,%zu,%zu,%zu]\n",
-                       p0,p1,c0,c1,c2,c3,
-                       getHash(p0,p1,c0,c1,c2),
-                       getHash(p0,p1,c0,c1,c3),
-                       getHash(p0,p1,c0,c2,c3),
-                       getHash(p0,p1,c1,c2,c3)
+                       p0,p1,c0,c1,c2,c3,h0,h1,h2,h3
                 );
             }
             count += 1;
