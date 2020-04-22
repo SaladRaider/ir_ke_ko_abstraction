@@ -71,7 +71,6 @@ void compute3rdRound(unsigned long start, unsigned long stop, std::string fileIn
     std::ifstream infile;
     std::string fileBuffer;
     infile.open(fileInName);
-    std::getline(infile, fileBuffer); // skip header
     for (c0 = 0; c0 < 48; c0++)
     for (c1 = c0 + 1; c1 < 49; c1++)
     for (c2 = c1 + 1; c2 < 50; c2++)
