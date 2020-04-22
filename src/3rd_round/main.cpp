@@ -176,9 +176,7 @@ int main() {
     //tLast = 2721679627;
     //T = 2809475760;
     //pid = 31;
-    std::stringstream fileInName;
-    fileInName << std::setfill('0') << std::setw(3) << pid;
-        printf("preparing to read from %s for values between %lu-%lu\n", fileInName.str().c_str(), tLast, T);
+    printf("preparing to read from all for values between %lu-%lu\n", tLast, T);
     //compute3rdRound(tLast, T, "distributions_4th_upstream/_" + fileInName.str() + ".csv");
     compute3rdRound(0, T, "distributions_4th_upstream/all.csv");
 

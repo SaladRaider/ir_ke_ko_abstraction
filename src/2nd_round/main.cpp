@@ -26,8 +26,8 @@ std::array<bool, 52> c_inDeck = {
     true, true, true, true, true, true, true, true, true, true, true, true, true
 };
 
-size_t getHash(size_t p0, size_t p1, size_t c0,
-               size_t c1, size_t c2) {
+size_t getHash(int p0, int p1, int c0,
+               int c1, int c2) {
     p0 += 1;
     p1 += 1;
     c0 += 1;
@@ -47,11 +47,11 @@ size_t getHash(size_t p0, size_t p1, size_t c0,
     } else if (c0 < p1) {
         p1 -= 1;
     }
-    size_t cHash, pHash;
+    int cHash, pHash;
     cHash = (((c0-156)*c0+8111)*c0-7956)/6+
             (c0-c1+1)*(c0+c1-104)/2-c1+c2-1;
     pHash = ((99-p0)*p0-98)/2-p0+p1-1;
-    return pHash + 1176*cHash;
+    return size_t(pHash + 1176*cHash);
 }
 
 const size_t c_numBuckets = 50;
@@ -59,6 +59,7 @@ std::array<std::array<unsigned int, c_numBuckets>, 25989600> buckets;
 
 void compute2ndRound(unsigned long start, unsigned long stop, std::string fileInName) {
     unsigned long count = 0;
+    unsigned long printInterval = 2936325;
     size_t p0, p1, c0, c1, c2, c3, i;
     unsigned int bucketVal;
     std::ifstream infile;
@@ -88,6 +89,15 @@ void compute2ndRound(unsigned long start, unsigned long stop, std::string fileIn
                 buckets[getHash(p0, p1, c0, c1, c3)][i] += bucketVal;
                 buckets[getHash(p0, p1, c0, c2, c3)][i] += bucketVal;
                 buckets[getHash(p0, p1, c1, c2, c3)][i] += bucketVal;
+            }
+            if (count % printInterval == 0) {
+                printf("(%zu,%zu) (%zu,%zu,%zu,%zu), [%zu,%zu,%zu,%zu]\n",
+                       p0,p1,c0,c1,c2,c3,
+                       getHash(p0,p1,c0,c1,c2),
+                       getHash(p0,p1,c0,c1,c3),
+                       getHash(p0,p1,c0,c2,c3),
+                       getHash(p0,p1,c1,c2,c3)
+                );
             }
             count += 1;
             if (count >= stop) {
@@ -121,15 +131,10 @@ void saveBuckets(size_t start, size_t stop, std::string fileOutName) {
 int main() {
     unsigned long T;
     size_t numProcesses;
-    printf("T:\n");
-    std::cin >> T;
     printf("numProcesses:\n");
     std::cin >> numProcesses;
 
-    if (T < 0)
-    {
-        T = 305377800; // 52 choose 4 * 48 choose 2
-    }
+    T = 305377800; // 52 choose 4 * 48 choose 2
 
     unsigned long tPerThread = T / numProcesses;
     unsigned long tLast = 0;

@@ -26,10 +26,10 @@ std::array<bool, 52> c_inDeck = {
     true, true, true, true, true, true, true, true, true, true, true, true, true
 };
 
-size_t getHash(size_t p0, size_t p1) {
+size_t getHash(int p0, int p1) {
     p0 += 1;
     p1 += 1;
-    pHash = ((105-p0)*p0-106)/2-p0+p1-1;
+    size_t pHash = size_t(((105-p0)*p0-106)/2-p0+p1-1);
     return pHash;
 }
 
@@ -40,6 +40,7 @@ void compute1stRound(unsigned long start, unsigned long stop, std::string fileIn
     unsigned long count = 0;
     size_t p0, p1, c0, c1, c2, i;
     unsigned int bucketVal;
+    unsigned long printInterval = 249900;
     std::ifstream infile;
     std::string fileBuffer;
     infile.open(fileInName);
@@ -62,6 +63,11 @@ void compute1stRound(unsigned long start, unsigned long stop, std::string fileIn
             for (i = 0; i < c_numBuckets; i++) {
                 iss >> bucketVal;
                 buckets[getHash(p0, p1)][i] += bucketVal;
+            }
+            if (count % printInterval == 0) {
+                printf("(%zu,%zu) (%zu,%zu,%zu), [%zu]\n",
+                       p0,p1,c0,c1,c2, getHash(p0, p1)
+                );
             }
             count += 1;
             if (count >= stop) {
@@ -94,15 +100,10 @@ void saveBuckets(size_t start, size_t stop, std::string fileOutName) {
 int main() {
     unsigned long T;
     size_t numProcesses;
-    printf("T:\n");
-    std::cin >> T;
     printf("numProcesses:\n");
     std::cin >> numProcesses;
 
-    if (T < 0)
-    {
-        T = 25989600; // 52 choose 3 * 49 choose 2
-    }
+    T = 25989600; // 52 choose 3 * 49 choose 2
 
     unsigned long tPerThread = T / numProcesses;
     unsigned long tLast = 0;
@@ -128,9 +129,7 @@ int main() {
         printf("preparing to read from %s for values between %lu-%lu\n", fileInName.str().c_str(), tLast, T);
     compute1stRound(tLast, T, "distributions_2nd/_" + fileInName.str() + ".csv");
 
-    std::stringstream fileOutName;
-    fileOutName << std::setfill('0') << std::setw(3) << 0;
-    printf("preparing to write to %s for values between %lu-%lu\n", fileOutName.str().c_str(), 0, 1326);
-    saveBuckets(0, 1326, "distributions_1st/_" + fileOutName.str() + ".csv");
+    printf("preparing to write to all.csv for values between %lu-%lu\n", 0, 1326);
+    saveBuckets(0, 1326, "distributions_1st/all.csv");
     return 0;
 }
