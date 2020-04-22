@@ -26,8 +26,8 @@ std::array<bool, 52> c_inDeck = {
     true, true, true, true, true, true, true, true, true, true, true, true, true
 };
 
-size_t getHash(size_t p0, size_t p1, size_t c0,
-               size_t c1, size_t c2, size_t c3) {
+size_t getHash(int p0, int p1, int c0,
+               int c1, int c2, int c3) {
     p0 += 1;
     p1 += 1;
     c0 += 1;
@@ -52,12 +52,12 @@ size_t getHash(size_t p0, size_t p1, size_t c0,
     } else if (c0 < p1) {
         p1 -= 1;
     }
-    size_t cHash, pHash;
+    int cHash, pHash;
     cHash =((((206-c0)*c0-15911)*c0+546106)*c0-530400)/24 -
            (c0-c1+1)*((c0+c1-154)*c0+(c1-155)*c1+7956)/6 +
            (c1-c2+1)*(c1+c2-104)/2-c2+c3-1;
     pHash = ((97-p0)*p0-96)/2-p0+p1-1;
-    return pHash + 1128*cHash;
+    return size_t(pHash + 1128*cHash);
 }
 
 const size_t c_numBuckets = 50;
@@ -65,6 +65,7 @@ std::array<std::array<std::int8_t, c_numBuckets>, 305377800> buckets;
 
 void compute3rdRound(unsigned long start, unsigned long stop, std::string fileInName) {
     unsigned long count = 0;
+    unsigned long printInterval = 27014190;
     size_t p0, p1, c0, c1, c2, c3, c4, bucketIdx;
     float mean;
     std::ifstream infile;
@@ -87,6 +88,7 @@ void compute3rdRound(unsigned long start, unsigned long stop, std::string fileIn
         if (c_inDeck[p1]) {
             if (count < start) {
                 count += 1;
+                printf("skipping...\n");
                 continue;
             }
             std::getline(infile, fileBuffer);
@@ -100,6 +102,17 @@ void compute3rdRound(unsigned long start, unsigned long stop, std::string fileIn
             buckets[getHash(p0, p1, c0, c1, c3, c4)][bucketIdx] += int8_t(1);
             buckets[getHash(p0, p1, c0, c2, c3, c4)][bucketIdx] += int8_t(1);
             buckets[getHash(p0, p1, c1, c2, c3, c4)][bucketIdx] += int8_t(1);
+            if (count % printInterval == 0) {
+                printf("(%zu,%zu) (%zu,%zu,%zu,%zu,%zu), [%zu,%zu,%zu,%zu,%zu] [%s -> %f -> %zu]\n",
+                       p0,p1,c0,c1,c2,c3,c4,
+                       getHash(p0,p1,c0,c1,c2,c3),
+                       getHash(p0,p1,c0,c1,c2,c4),
+                       getHash(p0,p1,c0,c1,c3,c4),
+                       getHash(p0,p1,c0,c2,c3,c4),
+                       getHash(p0,p1,c1,c2,c3,c4),
+                       fileBuffer.c_str(), mean, bucketIdx
+                );
+            }
             count += 1;
             if (count >= stop) {
                 printf("Processed %lu-%lu of %s.\n", start, stop, fileInName.c_str());
@@ -133,15 +146,12 @@ void saveBuckets(size_t start, size_t stop, std::string fileOutName) {
 int main() {
     unsigned long T;
     size_t numProcesses;
-    printf("T:\n");
-    std::cin >> T;
     printf("numProcesses:\n");
     std::cin >> numProcesses;
 
-    if (T < 0)
-    {
-        T = 2809475760; // 52 choose 5 * 47 choose 2
-    }
+    //printf("%lu\n", getHash(46,47,48,49,50,51));
+    //return 0;
+    T = 2809475760; // 52 choose 5 * 47 choose 2
 
     unsigned long tPerThread = T / numProcesses;
     unsigned long tLast = 0;
@@ -151,9 +161,10 @@ int main() {
     for (size_t i = 0; i < buckets.size(); i++) {
         buckets[i].fill(int8_t(0));
     }
+    printf("Done initializing buckets.\n");
 
-    size_t pid;
-    for (pid = 0; pid < numProcesses - 1; pid++)
+    size_t pid = 0;
+    /*for (pid = 0; pid < numProcesses - 1; pid++)
     {
         std::stringstream fileInName;
         fileInName << std::setfill('0') << std::setw(3) << pid;
@@ -161,17 +172,24 @@ int main() {
                 fileInName.str().c_str(), tLast, tLast+tPerThread);
         compute3rdRound(tLast, tLast + tPerThread, "distributions_4th_upstream/_" + fileInName.str() + ".csv");
         tLast += tPerThread;
-    }
+    }*/
+    //tLast = 2721679627;
+    //T = 2809475760;
+    //pid = 31;
     std::stringstream fileInName;
     fileInName << std::setfill('0') << std::setw(3) << pid;
         printf("preparing to read from %s for values between %lu-%lu\n", fileInName.str().c_str(), tLast, T);
-    compute3rdRound(tLast, T, "distributions_4th_upstream/_" + fileInName.str() + ".csv");
+    //compute3rdRound(tLast, T, "distributions_4th_upstream/_" + fileInName.str() + ".csv");
+    compute3rdRound(0, T, "distributions_4th_upstream/all.csv");
 
     int lastPID = 1;
     pid = 0;
     T = 305377800;
     tPerThread = T / numProcesses;
     tLast = 0;
+    //tLast = 305377799;
+    //pid = 32;
+ 
     for (pid = 0; pid < numProcesses - 1; pid++)
     {
         lastPID = fork();
