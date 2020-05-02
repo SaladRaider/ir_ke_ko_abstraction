@@ -263,10 +263,10 @@ void findStraight(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards
     {
         handType->handIndex = STRAIGHT;
         handType->keyCardIndex[0] = (*straightMask)[14];
-        handType->keyCardIndex[1] = (*straightMask)[2];
-        handType->keyCardIndex[2] = (*straightMask)[3];
-        handType->keyCardIndex[3] = (*straightMask)[4];
-        handType->keyCardIndex[4] = (*straightMask)[5];
+        handType->keyCardIndex[1] = (*straightMask)[5];
+        handType->keyCardIndex[2] = (*straightMask)[4];
+        handType->keyCardIndex[3] = (*straightMask)[3];
+        handType->keyCardIndex[4] = (*straightMask)[2];
     }
     int count = 0;
     for (int i = 14; i >= 2; i--)
@@ -288,44 +288,6 @@ void findStraight(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards
         else
             count = 0;
     }
-    /*int straightSize = 0;
-    int k;
-    int kk;
-    int cV0, cV1;
-    for (int i = 13; i >= 6; i--)
-    {
-    k = i % 7;
-    kk = (i + 1) % 7;
-    cV0 = c_cardValue[cards->at(k)];
-    cV1 = c_cardValue[cards->at(kk)];
-    if (cV0 - 1 == cV1 ||
-        cV0 + 12 == cV1)
-    {
-        straight.at(straightSize) = k;
-        straightSize += 1;
-        if (straightSize == 5)
-        {
-            handType->handIndex = STRAIGHT;
-            if (cV0 == 14)
-            {
-                for (int j = 0; j < 4; j++)
-                    handType->keyCardIndex.at(j + 1) = straight.at(j);
-                handType->keyCardIndex.at(0) = k;
-            }
-            else
-            {
-                for (int j = 0; j < 5; j++)
-                    handType->keyCardIndex.at(j) = straight.at(j);
-            }
-            return;
-        }
-    }
-    else if (cV0 != cV1)
-    {
-        straightSize = 1;
-        straight.at(0) = k;
-    }
-    }*/
 }
 
 void findStraightFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards,
@@ -339,7 +301,7 @@ void findStraightFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *
     int k;
     int cV0;
     int suit;
-    for (int i = 13; i >= 3; i--)
+    for (int i = 13; i >= 0; i--)
     {
         k = i % 7;
         cV0 = c_cardValue[(*cards)[k]];
