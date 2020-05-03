@@ -248,11 +248,11 @@ void findStraight(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards
         (*straightMask)[5] != -1)
     {
         handType->handIndex = STRAIGHT;
-        handType->keyCardIndex[0] = (*straightMask)[14];
-        handType->keyCardIndex[1] = (*straightMask)[5];
-        handType->keyCardIndex[2] = (*straightMask)[4];
-        handType->keyCardIndex[3] = (*straightMask)[3];
-        handType->keyCardIndex[4] = (*straightMask)[2];
+        handType->keyCardIndex[0] = (*straightMask)[5];
+        handType->keyCardIndex[1] = (*straightMask)[4];
+        handType->keyCardIndex[2] = (*straightMask)[3];
+        handType->keyCardIndex[3] = (*straightMask)[2];
+        handType->keyCardIndex[4] = (*straightMask)[14];
     }
     int count = 0;
     for (int i = 14; i >= 2; i--)
@@ -305,17 +305,8 @@ void findStraightFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *
             if ((*sFlushSize)[suit] == 5)
             {
                 handType->handIndex = STRAIGHT_FLUSH;
-                if (cV0 == 14)
-                {
-                    for (int j = 0; j < 4; j++)
-                        handType->keyCardIndex[j + 1] = (*sFlush)[suit][j];
-                    handType->keyCardIndex[0] = k;
-                }
-                else
-                {
-                    for (int j = 0; j < 5; j++)
-                        handType->keyCardIndex[j] = (*sFlush)[suit][j];
-                }
+                for (int j = 0; j < 5; j++)
+                    handType->keyCardIndex[j] = (*sFlush)[suit][j];
                 return;
             }
         }
