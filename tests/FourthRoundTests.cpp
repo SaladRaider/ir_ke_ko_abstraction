@@ -71,7 +71,7 @@ protected:
         int result = getValue(
             &pCards, &eCards,
             &handTypeCache, &sFlush, &sFlushSize, &straightMask);
-        EXPECT_EQ(expected, result);
+        EXPECT_EQ(expected, result) << "pCards:(" << p0 << "," << p1 << ") eCards:(" << e0 << "," << e1 << ") cCards:(" << c0 << "," << c1 << "," << c2 << "," << c3 << "," << c4 << ")\n";
     }
 
     // Objects declared here can be used by all tests in the test case for Project1.
@@ -305,3 +305,889 @@ TEST_F(HandEvalTests, OnePairVSFlush) {
         "3C", "8D", "TH", "JH", "QH", // community cards
         WIN);
 }
+
+TEST_F(HandEvalTests, OnePairVSFullHouse) {
+    expectHandComparison(
+        "AC", "KS",                   // hero cards
+        "2H", "3H",                   // villan cards
+        "3C", "3D", "2H", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "2H", "3H",                   // hero cards
+        "AC", "KS",                   // villan cards
+        "3C", "3D", "2H", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, OnePairVSFourOfAKind) {
+    expectHandComparison(
+        "AC", "KS",                   // hero cards
+        "3S", "3H",                   // villan cards
+        "3C", "3D", "2H", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "3S", "3H",                   // hero cards
+        "AC", "KS",                   // villan cards
+        "3C", "3D", "2H", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, OnePairVSStraightFlush) {
+    expectHandComparison(
+        "AC", "QS",                   // hero cards
+        "8H", "9H",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "8H", "9H",                   // hero cards
+        "AC", "QS",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, OnePairVSRoyalFlush) {
+    expectHandComparison(
+        "AC", "QS",                   // hero cards
+        "KH", "AH",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "KH", "AH",                   // hero cards
+        "AC", "QS",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, TwoPairVThreeOfAKind) {
+    expectHandComparison(
+        "AC", "QS",                   // hero cards
+        "2H", "3S",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "2H", "3S",                   // hero cards
+        "AC", "QS",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, TwoPairVSStraight) {
+    expectHandComparison(
+        "AC", "QS",                   // hero cards
+        "8H", "9S",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "8H", "9S",                   // hero cards
+        "AC", "QS",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, TwoPairVSFlush) {
+    expectHandComparison(
+        "AC", "QS",                   // hero cards
+        "8H", "2H",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "8H", "2H",                   // hero cards
+        "AC", "QS",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, TwoPairVSFullHouse) {
+    expectHandComparison(
+        "AC", "QS",                   // hero cards
+        "3H", "TC",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "3H", "TC",                   // hero cards
+        "AC", "QS",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, TwoPairVSFourOfAKind) {
+    expectHandComparison(
+        "AC", "QS",                   // hero cards
+        "3H", "3S",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "3H", "3S",                   // hero cards
+        "AC", "QS",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, TwoPairVSStraightFlush) {
+    expectHandComparison(
+        "AC", "QS",                   // hero cards
+        "8H", "9H",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "8H", "9H",                   // hero cards
+        "AC", "QS",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, TwoPairVSRoyalFlush) {
+    expectHandComparison(
+        "AC", "QS",                   // hero cards
+        "KH", "AH",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "KH", "AH",                   // hero cards
+        "AC", "QS",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, ThreeOfAKindVSStraight) {
+    expectHandComparison(
+        "AC", "3S",                   // hero cards
+        "8H", "9S",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "8H", "9S",                   // hero cards
+        "AC", "3S",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, ThreeOfAKindVSFlush) {
+    expectHandComparison(
+        "AC", "3S",                   // hero cards
+        "8H", "4H",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "8H", "4H",                   // hero cards
+        "AC", "3S",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, ThreeOfAKindVSFullHouse) {
+    expectHandComparison(
+        "AC", "3S",                   // hero cards
+        "3H", "TD",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "3H", "TD",                   // hero cards
+        "AC", "3S",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, ThreeOfAKindVSFourOfAKind) {
+    expectHandComparison(
+        "QD", "QS",                   // hero cards
+        "3H", "3S",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "3H", "3S",                   // hero cards
+        "QD", "QS",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, ThreeOfAKindVSStraightFlush) {
+    expectHandComparison(
+        "AC", "3S",                   // hero cards
+        "8H", "9H",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "8H", "9H",                   // hero cards
+        "AC", "3S",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, ThreeOfAKindVSRoyalFlush) {
+    expectHandComparison(
+        "AC", "3S",                   // hero cards
+        "KH", "AH",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "KH", "AH",                   // hero cards
+        "AC", "3S",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, StraightVSFlush) {
+    expectHandComparison(
+        "KC", "AC",                   // hero cards
+        "2H", "3H",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "2H", "3H",                   // hero cards
+        "KC", "AC",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, StraightVSFullHouse) {
+    expectHandComparison(
+        "KC", "AC",                   // hero cards
+        "3H", "TD",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "3H", "TD",                   // hero cards
+        "KC", "AC",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, StraightVSFourOfAKind) {
+    expectHandComparison(
+        "KC", "AC",                   // hero cards
+        "3H", "3S",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "3H", "3S",                   // hero cards
+        "KC", "AC",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, StraightVSStraightFlush) {
+    expectHandComparison(
+        "KC", "AC",                   // hero cards
+        "8H", "9H",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "8H", "9H",                   // hero cards
+        "KC", "AC",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, StraightVSRoyalFlush) {
+    expectHandComparison(
+        "KC", "AC",                   // hero cards
+        "KH", "AH",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "KH", "AH",                   // hero cards
+        "KC", "AC",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, FlushVSFullHouse) {
+    expectHandComparison(
+        "6H", "7H",                   // hero cards
+        "3S", "TD",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "3S", "TD",                   // hero cards
+        "6H", "7H",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, FlushVSFourOfAKind) {
+    expectHandComparison(
+        "6H", "7H",                   // hero cards
+        "3S", "3H",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "3S", "3H",                   // hero cards
+        "6H", "7H",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, FlushVSStraightFlush) {
+    expectHandComparison(
+        "6H", "AH",                   // hero cards
+        "8H", "9H",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "8H", "9H",                   // hero cards
+        "6H", "AH",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, FlushVSRoyalFlush) {
+    expectHandComparison(
+        "6H", "7H",                   // hero cards
+        "KH", "AH",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "KH", "AH",                   // hero cards
+        "6H", "7H",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, FullHouseVSFourOfAKind) {
+    expectHandComparison(
+        "QC", "QS",                   // hero cards
+        "3H", "3S",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "3H", "3S",                   // hero cards
+        "QC", "QS",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, FullHouseVSStraightFlush) {
+    expectHandComparison(
+        "QC", "QS",                   // hero cards
+        "8H", "9H",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "8H", "9H",                   // hero cards
+        "QC", "QS",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, FullHouseVSRoyalFlush) {
+    expectHandComparison(
+        "QC", "QS",                   // hero cards
+        "KH", "AH",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "KH", "AH",                   // hero cards
+        "QC", "QS",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, FourOfAKindVSStraightFlush) {
+    expectHandComparison(
+        "3H", "3S",                   // hero cards
+        "8H", "9H",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "8H", "9H",                   // hero cards
+        "3H", "3S",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, FourOfAKindVSRoyalFlush) {
+    expectHandComparison(
+        "3H", "3S",                   // hero cards
+        "KH", "AH",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "KH", "AH",                   // hero cards
+        "3H", "3S",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, StraightFlushVSRoyalFlush) {
+    expectHandComparison(
+        "8H", "9H",                   // hero cards
+        "KH", "AH",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "KH", "AH",                   // hero cards
+        "8H", "9H",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+}
+
+TEST_F(HandEvalTests, HighCardVSHighCard) {
+    expectHandComparison(
+        "4S", "5C",                   // hero cards
+        "6C", "4C",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "6C", "4C",                   // hero cards
+        "4S", "5C",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "4C", "AS",                   // hero cards
+        "5C", "AC",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "5C", "AC",                   // hero cards
+        "4C", "AS",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "7S", "8S",                   // hero cards
+        "7D", "8D",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        TIE);
+    expectHandComparison(
+        "7D", "8D",                   // hero cards
+        "7S", "8S",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        TIE);
+
+    expectHandComparison(
+        "3H", "5C",                   // hero cards
+        "2D", "5S",                   // villan cards
+        "4S", "AC", "TH", "JH", "QH", // community cards
+        TIE);
+    expectHandComparison(
+        "2D", "5S",                   // hero cards
+        "3H", "5C",                   // villan cards
+        "4S", "AC", "TH", "JH", "QH", // community cards
+        TIE);
+
+    expectHandComparison(
+        "6S", "7S",                   // hero cards
+        "2D", "3D",                   // villan cards
+        "9S", "AC", "TH", "JH", "QH", // community cards
+        TIE);
+    expectHandComparison(
+        "2D", "3D",                   // hero cards
+        "6S", "7S",                   // villan cards
+        "9S", "AC", "TH", "JH", "QH", // community cards
+        TIE);
+}
+
+TEST_F(HandEvalTests, OnePairVSOnePair) {
+    expectHandComparison(
+        "2C", "5C",                   // hero cards
+        "3D", "4C",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "3D", "4C",                   // hero cards
+        "2C", "5C",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "2S", "KC",                   // hero cards
+        "2H", "AC",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "2H", "AC",                   // hero cards
+        "2S", "KC",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "2H", "9C",                   // hero cards
+        "2S", "8C",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        TIE);
+    expectHandComparison(
+        "2S", "8C",                   // hero cards
+        "2H", "9C",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        TIE);
+}
+
+TEST_F(HandEvalTests, TwoPairVSTwoPair) {
+    expectHandComparison(
+        "TD", "3S",                   // hero cards
+        "QD", "JS",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "QD", "JS",                   // hero cards
+        "TD", "3S",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "JD", "TC",                   // hero cards
+        "QD", "TD",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "QD", "TD",                   // hero cards
+        "JD", "TC",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "QS", "TC",                   // hero cards
+        "QD", "JC",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "QD", "JC",                   // hero cards
+        "QS", "TC",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "QS", "KC",                   // hero cards
+        "QD", "AC",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "QD", "AC",                   // hero cards
+        "QS", "KC",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "QS", "TC",                   // hero cards
+        "QD", "JC",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "QD", "JC",                   // hero cards
+        "QS", "TC",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "QS", "4C",                   // hero cards
+        "QD", "5C",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        TIE);
+    expectHandComparison(
+        "QD", "5C",                   // hero cards
+        "QS", "4C",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        TIE);
+
+    expectHandComparison(
+        "QS", "TC",                   // hero cards
+        "QD", "TD",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        TIE);
+    expectHandComparison(
+        "QD", "TD",                   // hero cards
+        "QS", "TC",                   // villan cards
+        "3C", "3D", "TH", "JH", "QH", // community cards
+        TIE);
+}
+
+TEST_F(HandEvalTests, ThreeOfAKindVSThreeOfAKind) {
+    expectHandComparison(
+        "2H", "2C",                   // hero cards
+        "3D", "3H",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "3D", "3H",                   // hero cards
+        "2H", "2C",                   // villan cards
+        "3C", "2D", "TH", "JH", "QH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "2H", "2C",                   // hero cards
+        "AD", "AC",                   // villan cards
+        "3C", "2D", "TH", "JH", "AH", // community cards
+        LOSS);
+    expectHandComparison(
+        "AD", "AC",                   // hero cards
+        "2H", "2C",                   // villan cards
+        "3C", "2D", "TH", "JH", "AH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "3S", "9C",                   // hero cards
+        "3H", "TH",                   // villan cards
+        "3C", "3D", "6H", "8H", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "3H", "TH",                   // hero cards
+        "3S", "9C",                   // villan cards
+        "3C", "3D", "6H", "8H", "QH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "3S", "KH",                   // hero cards
+        "3H", "AH",                   // villan cards
+        "3C", "3D", "6H", "8H", "QH", // community cards
+        LOSS);
+    expectHandComparison(
+        "3H", "AH",                   // hero cards
+        "3S", "KH",                   // villan cards
+        "3C", "3D", "6H", "8H", "QH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "3S", "TH",                   // hero cards
+        "3H", "9C",                   // villan cards
+        "3C", "3D", "6H", "JH", "QH", // community cards
+        TIE);
+    expectHandComparison(
+        "3H", "9C",                   // hero cards
+        "3S", "TH",                   // villan cards
+        "3C", "3D", "6H", "JH", "QH", // community cards
+        TIE);
+}
+
+TEST_F(HandEvalTests, StraightVSStraight) {
+    expectHandComparison(
+        "TS", "8S",                   // hero cards
+        "TC", "KC",                   // villan cards
+        "5D", "6D", "9H", "JH", "QC", // community cards
+        LOSS);
+    expectHandComparison(
+        "TC", "KC",                   // hero cards
+        "TS", "8S",                   // villan cards
+        "5D", "6D", "9H", "JH", "QC", // community cards
+        WIN);
+
+    expectHandComparison(
+        "AS", "8S",                   // hero cards
+        "6S", "8D",                   // villan cards
+        "5D", "4D", "3H", "2H", "QC", // community cards
+        LOSS);
+    expectHandComparison(
+        "6S", "8D",                   // hero cards
+        "AS", "8S",                   // villan cards
+        "5D", "4D", "3H", "2H", "QC", // community cards
+        WIN);
+
+    expectHandComparison(
+        "6D", "AC",                   // hero cards
+        "6S", "2D",                   // villan cards
+        "5D", "4D", "3H", "2H", "QC", // community cards
+        TIE);
+    expectHandComparison(
+        "6S", "2D",                   // hero cards
+        "6D", "AC",                   // villan cards
+        "5D", "4D", "3H", "2H", "QC", // community cards
+        TIE);
+}
+
+TEST_F(HandEvalTests, FlushVSFlush) {
+    expectHandComparison(
+        "9H", "QH",                   // hero cards
+        "KH", "AH",                   // villan cards
+        "5D", "4H", "6H", "8H", "TH", // community cards
+        LOSS);
+    expectHandComparison(
+        "KH", "AH",                   // hero cards
+        "9H", "QH",                   // villan cards
+        "5D", "4H", "6H", "8H", "TH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "7H", "AD",                   // hero cards
+        "9H", "2D",                   // villan cards
+        "5D", "4H", "6H", "8H", "TH", // community cards
+        LOSS);
+    expectHandComparison(
+        "9H", "2D",                   // hero cards
+        "7H", "AD",                   // villan cards
+        "5D", "4H", "6H", "8H", "TH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "5H", "AD",                   // hero cards
+        "7H", "2D",                   // villan cards
+        "5D", "4H", "6H", "8H", "TH", // community cards
+        LOSS);
+    expectHandComparison(
+        "7H", "2D",                   // hero cards
+        "5H", "AD",                   // villan cards
+        "5D", "4H", "6H", "8H", "TH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "3H", "AD",                   // hero cards
+        "5H", "2D",                   // villan cards
+        "5D", "4H", "6H", "8H", "TH", // community cards
+        LOSS);
+    expectHandComparison(
+        "5H", "2D",                   // hero cards
+        "3H", "AD",                   // villan cards
+        "5D", "4H", "6H", "8H", "TH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "7H", "2H",                   // hero cards
+        "9H", "2D",                   // villan cards
+        "5D", "4H", "6H", "8H", "TH", // community cards
+        LOSS);
+    expectHandComparison(
+        "9H", "2D",                   // hero cards
+        "7H", "2H",                   // villan cards
+        "5D", "4H", "6H", "8H", "TH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "AS", "3H",                   // hero cards
+        "3D", "2D",                   // villan cards
+        "5H", "4H", "6H", "8H", "TH", // community cards
+        TIE);
+    expectHandComparison(
+        "3D", "2D",                   // hero cards
+        "AS", "3H",                   // villan cards
+        "5H", "4H", "6H", "8H", "TH", // community cards
+        TIE);
+}
+
+TEST_F(HandEvalTests, FullHouseVSFullHouse) {
+    expectHandComparison(
+        "8D", "8C",                   // hero cards
+        "TD", "TC",                   // villan cards
+        "4D", "4H", "6H", "8H", "TH", // community cards
+        LOSS);
+    expectHandComparison(
+        "TD", "TC",                   // hero cards
+        "8D", "8C",                   // villan cards
+        "4D", "4H", "6H", "8H", "TH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "8D", "4S",                   // hero cards
+        "TD", "4C",                   // villan cards
+        "4D", "4H", "6H", "8H", "TH", // community cards
+        LOSS);
+    expectHandComparison(
+        "TD", "4C",                   // hero cards
+        "8D", "4S",                   // villan cards
+        "4D", "4H", "6H", "8H", "TH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "TS", "4S",                   // hero cards
+        "6D", "6C",                   // villan cards
+        "4D", "4H", "6H", "8H", "TH", // community cards
+        LOSS);
+    expectHandComparison(
+        "6D", "6C",                   // hero cards
+        "TS", "4S",                   // villan cards
+        "4D", "4H", "6H", "8H", "TH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "6S", "4S",                   // hero cards
+        "6D", "4C",                   // villan cards
+        "4D", "4H", "6H", "8H", "TH", // community cards
+        TIE);
+    expectHandComparison(
+        "6D", "4C",                   // hero cards
+        "6S", "4S",                   // villan cards
+        "4D", "4H", "6H", "8H", "TH", // community cards
+        TIE);
+}
+
+TEST_F(HandEvalTests, FourOfAKindVSFourOfAKind) {
+    expectHandComparison(
+        "4C", "4S",                   // hero cards
+        "8D", "8C",                   // villan cards
+        "4D", "4H", "8S", "8H", "TH", // community cards
+        LOSS);
+    expectHandComparison(
+        "8D", "8C",                   // hero cards
+        "4C", "4S",                   // villan cards
+        "4D", "4H", "8S", "8H", "TH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "TD", "TS",                   // hero cards
+        "QD", "2D",                   // villan cards
+        "8D", "8C", "8S", "8H", "TH", // community cards
+        LOSS);
+    expectHandComparison(
+        "QD", "2D",                   // hero cards
+        "TD", "TS",                   // villan cards
+        "8D", "8C", "8S", "8H", "TH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "9H", "7H",                   // hero cards
+        "3D", "2D",                   // villan cards
+        "8D", "8C", "8S", "8H", "TH", // community cards
+        TIE);
+    expectHandComparison(
+        "3D", "2D",                   // hero cards
+        "9H", "7H",                   // villan cards
+        "8D", "8C", "8S", "8H", "TH", // community cards
+        TIE);
+
+    expectHandComparison(
+        "9H", "JH",                   // hero cards
+        "JC", "2D",                   // villan cards
+        "8D", "8C", "8S", "8H", "TH", // community cards
+        TIE);
+    expectHandComparison(
+        "JC", "2D",                   // hero cards
+        "9H", "JH",                   // villan cards
+        "8D", "8C", "8S", "8H", "TH", // community cards
+        TIE);
+}
+
+TEST_F(HandEvalTests, StraightFlushVSStraightFlush) {
+    expectHandComparison(
+        "AH", "2H",                   // hero cards
+        "6H", "7H",                   // villan cards
+        "5H", "3H", "4H", "TC", "TH", // community cards
+        LOSS);
+    expectHandComparison(
+        "6H", "7H",                   // hero cards
+        "AH", "2H",                   // villan cards
+        "5H", "3H", "4H", "TC", "TH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "3H", "2H",                   // hero cards
+        "7H", "8H",                   // villan cards
+        "5H", "6H", "4H", "TC", "TH", // community cards
+        LOSS);
+    expectHandComparison(
+        "7H", "8H",                   // hero cards
+        "3H", "2H",                   // villan cards
+        "5H", "6H", "4H", "TC", "TH", // community cards
+        WIN);
+
+    expectHandComparison(
+        "6H", "AH",                   // hero cards
+        "JH", "2D",                   // villan cards
+        "9H", "8H", "7H", "TC", "TH", // community cards
+        LOSS);
+    expectHandComparison(
+        "JH", "2D",                   // hero cards
+        "6H", "AH",                   // villan cards
+        "9H", "8H", "7H", "TC", "TH", // community cards
+        WIN);
+
+    xpectHandComparison(
+        "AS", "AH",                   // hero cards
+        "TS", "TC",                   // villan cards
+        "9H", "8H", "7H", "JH", "TH", // community cards
+        TIE);
+    expectHandComparison(
+        "TS", "TC",                   // hero cards
+        "AS", "AH",                   // villan cards
+        "9H", "8H", "7H", "JH", "TH", // community cards
+        TIE);
+}
+
