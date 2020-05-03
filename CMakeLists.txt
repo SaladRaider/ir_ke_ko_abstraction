@@ -12,9 +12,11 @@ add_subdirectory(extern/googletest)
 
 add_library(4th_compute_dist_lib STATIC src/4th_round/fourthround.cpp)
 add_library(3rd_compute_dist_lib STATIC src/3rd_round/thirdround.cpp)
+add_library(2nd_compute_dist_lib STATIC src/2nd_round/secondround.cpp)
 
 add_executable(fourth_round_tests tests/FourthRoundTests.cpp)
 add_executable(third_round_tests tests/ThirdRoundTests.cpp)
+add_executable(second_round_tests tests/SecondRoundTests.cpp)
 target_link_libraries(fourth_round_tests PUBLIC
     gtest_main
     4th_compute_dist_lib
@@ -22,6 +24,10 @@ target_link_libraries(fourth_round_tests PUBLIC
 target_link_libraries(third_round_tests PUBLIC
     gtest_main
     3rd_compute_dist_lib
+)
+target_link_libraries(second_round_tests PUBLIC
+    gtest_main
+    2nd_compute_dist_lib
 )
 
 add_test(
@@ -31,6 +37,10 @@ add_test(
 add_test(
     NAME third_round_tests
     COMMAND third_round_tests
+)
+add_test(
+    NAME second_round_tests
+    COMMAND second_round_tests
 )
 
 include_directories(src)
