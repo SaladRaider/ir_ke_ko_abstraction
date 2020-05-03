@@ -11,11 +11,16 @@ enable_testing()
 add_subdirectory(extern/googletest)
 
 add_library(4th_compute_dist_lib STATIC src/4th_round/fourthround.cpp)
+add_library(3rd_compute_dist_lib STATIC src/3rd_round/thirdround.cpp)
 
 add_executable(fourth_round_tests tests/FourthRoundTests.cpp)
 target_link_libraries(fourth_round_tests PUBLIC
     gtest_main
     4th_compute_dist_lib
+)
+target_link_libraries(fourth_round_tests PUBLIC
+    gtest_main
+    3rd_compute_dist_lib
 )
 
 add_test(
@@ -26,7 +31,7 @@ add_test(
 include_directories(src)
 file(GLOB SOURCES src/*.h src/*.cpp)
 add_executable(4th_compute_dist src/4th_round/main.cpp src/4th_round/fourthround.cpp)
-add_executable(3rd_compute_dist src/3rd_round/main.cpp)
+add_executable(3rd_compute_dist src/3rd_round/main.cpp src/3rd_round/thirdround.cpp)
 add_executable(2nd_compute_dist src/2nd_round/main.cpp)
 add_executable(1st_compute_dist src/2nd_round/main.cpp)
 target_compile_features(4th_compute_dist PRIVATE cxx_lambda_init_captures)

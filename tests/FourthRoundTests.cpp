@@ -1179,7 +1179,7 @@ TEST_F(HandEvalTests, StraightFlushVSStraightFlush) {
         "9H", "8H", "7H", "TC", "TH", // community cards
         WIN);
 
-    xpectHandComparison(
+    expectHandComparison(
         "AS", "AH",                   // hero cards
         "TS", "TC",                   // villan cards
         "9H", "8H", "7H", "JH", "TH", // community cards
