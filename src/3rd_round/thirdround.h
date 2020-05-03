@@ -7,20 +7,17 @@
 
 class ThirdRoundGenerator {
 private:
+    const size_t c_numBuckets = 50;
+    std::array<std::array<std::int8_t, 50>, 305377800> buckets;
+public:
     std::array<bool, 52> c_inDeck = {
         true, true, true, true, true, true, true, true, true, true, true, true, true,
         true, true, true, true, true, true, true, true, true, true, true, true, true,
         true, true, true, true, true, true, true, true, true, true, true, true, true,
         true, true, true, true, true, true, true, true, true, true, true, true, true
     };
-    const size_t c_numBuckets = 50;
-    std::array<std::array<std::int8_t, 50>, 305377800> buckets;
-public:
-    ThirdRoundGenerator() {
-        for (size_t i = 0; i < buckets.size(); i++) {
-            buckets[i].fill(int8_t(0));
-        }
-    }
+    ThirdRoundGenerator();
+    ThirdRoundGenerator(int n);
     size_t getHash(int p0, int p1, int c0,
                    int c1, int c2, int c3);
     void compute3rdRound(unsigned long start, unsigned long stop, std::string fileInName);

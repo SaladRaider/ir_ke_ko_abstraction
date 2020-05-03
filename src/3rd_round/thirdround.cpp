@@ -14,6 +14,14 @@
     5,8,    0,1,2,3,4,    0,990,0,0.5
 */
 
+ThirdRoundGenerator::ThirdRoundGenerator() {
+    for (size_t i = 0; i < buckets.size(); i++) {
+        buckets[i].fill(int8_t(0));
+    }
+}
+
+ThirdRoundGenerator::ThirdRoundGenerator(int n) {}
+
 size_t ThirdRoundGenerator::getHash(int p0, int p1, int c0,
                                     int c1, int c2, int c3) {
     p0 += 1;
