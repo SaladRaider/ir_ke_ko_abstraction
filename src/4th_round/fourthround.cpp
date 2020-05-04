@@ -461,6 +461,7 @@ void FourthRoundGenerator::compute4thRound(int tid, unsigned long start, unsigne
     int i=0, i0=0, i1=0, i2=0, i3=0, i4=0, i5=0, i6=0, i7=0, i8=0;
     float mean=0.0f;
     unsigned long int innerCount = 0;
+    c_inDeck.fill(true);
     std::unordered_map<int, std::unique_ptr<HandType>> handTypeCache;
     std::array<int, 7> pCards;
     std::array<int, 7> eCards;

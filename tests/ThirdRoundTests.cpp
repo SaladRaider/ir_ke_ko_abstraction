@@ -6,16 +6,16 @@
 #include <algorithm>
 #include "../src/3rd_round/thirdround.h"
 
-class HashTests : public ::testing::Test {
+class ThirdRoundGeneratorTests : public ::testing::Test {
 protected:
     // You can remove any or all of the following functions if its body
     // is empty.
 
-    HashTests() {
+    ThirdRoundGeneratorTests() {
         // You can do set-up work for each test here.
     }
 
-    virtual ~HashTests() {
+    virtual ~ThirdRoundGeneratorTests() {
         // You can do clean-up work that doesn't throw exceptions here.
     }
 
@@ -35,7 +35,43 @@ protected:
     ThirdRoundGenerator gen{0};
 };
 
-TEST_F(HashTests, HashOrder) {
+TEST_F(ThirdRoundGeneratorTests, HashOrder1st) {
+    size_t p0, p1, expectedHash;
+    expectedHash = 0;
+    for (p0 = 0; p0 < 51; p0++)
+    for (p1 = p0 + 1; p1 < 52; p1++) {
+        ASSERT_EQ(expectedHash, gen.getHash1st(p0, p1))
+            << '(' << p0 << ',' << p1 << ")\n";
+        expectedHash += 1;
+    }
+}
+
+TEST_F(ThirdRoundGeneratorTests, HashOrder2nd) {
+    size_t p0, p1, c0, c1, c2, expectedHash;
+    expectedHash = 0;
+    for (c0 = 0; c0 < 50; c0++)
+    for (c1 = c0 + 1; c1 < 51; c1++)
+    for (c2 = c1 + 1; c2 < 52; c2++) {
+        gen.c_inDeck[c0] = false;
+        gen.c_inDeck[c1] = false;
+        gen.c_inDeck[c2] = false;
+        for (p0 = 0; p0 < 51; p0++)
+        if (gen.c_inDeck[p0])
+        for (p1 = p0 + 1; p1 < 52; p1++) {
+            if (gen.c_inDeck[p1]) {
+                ASSERT_EQ(expectedHash, gen.getHash2nd(p0, p1, c0, c1, c2))
+                    << '(' << p0 << ',' << p1 << ") (" << c0 << ',' << c1
+                    << ',' << c2 << ")\n";
+                expectedHash += 1;
+            }
+        }
+        gen.c_inDeck[c0] = true;
+        gen.c_inDeck[c1] = true;
+        gen.c_inDeck[c2] = true;
+    }
+}
+
+TEST_F(ThirdRoundGeneratorTests, HashOrder3rd) {
     size_t p0, p1, c0, c1, c2, c3, expectedHash;
     expectedHash = 0;
     for (c0 = 0; c0 < 49; c0++)
@@ -63,7 +99,7 @@ TEST_F(HashTests, HashOrder) {
     }
 }
 
-TEST_F(HashTests, BucketDistribution) {
+TEST_F(ThirdRoundGeneratorTests, BucketDistribution) {
     std::array<int, 50> buckets;
     buckets.fill(0);
     size_t p0, p1, c0, c1, c2, c3, c4, h0, h1, h2, h3, h4, thirdRoundHash, count;
@@ -82,7 +118,7 @@ TEST_F(HashTests, BucketDistribution) {
         if (gen.c_inDeck[p0])
         for (p1 = p0 + 1; p1 < 52; p1++)
         if (gen.c_inDeck[p1]) {
-            if (count % 191317311 != 0) {
+            if (count % 791317311 != 0) {
                 count += 1;
                 continue;
             }
@@ -95,12 +131,12 @@ TEST_F(HashTests, BucketDistribution) {
             f << mean << '\n';
             f.close();
             printf("bucketIdx: %d; mean: %f;\n", bucketIdx, mean);
+            printf("(%zu,%zu) (%zu,%zu,%zu,%zu,%zu)\n",
+                    p0,p1,c0,c1,c2,c3,c4);
 
             ThirdRoundGenerator *genThird = new ThirdRoundGenerator{0};
             genThird->compute3rdRound(count, count + 1,
                                       "test_dummyBuckets.txt");
-            printf("(%zu,%zu) (%zu,%zu,%zu,%zu,%zu)\n",
-                    p0,p1,c0,c1,c2,c3,c4);
             h0 = genThird->getHash(p0,p1,c0,c1,c2,c3);
             h1 = genThird->getHash(p0,p1,c0,c1,c2,c4);
             h2 = genThird->getHash(p0,p1,c0,c1,c3,c4);
@@ -119,8 +155,7 @@ TEST_F(HashTests, BucketDistribution) {
             }
             infile.close();
             std::string bucketsStr(std::begin(buckets), std::end(buckets));
-            ASSERT_EQ(1, buckets[bucketIdx]) << "h0; bucketIdx:"
-                << bucketIdx << ";\nbuckets:" << bucketsStr << "\n";
+            ASSERT_EQ(1, buckets[bucketIdx]) << "h0;  3rd round\n";
 
             genThird->saveBuckets(h1, h1 + 1, "test_dummySavedBuckets.txt");
             infile.open("test_dummySavedBuckets.txt");
@@ -130,7 +165,7 @@ TEST_F(HashTests, BucketDistribution) {
                 iss2 >> bucketVal;
             }
             infile.close();
-            ASSERT_EQ(1, bucketVal) << "h1;\n";
+            ASSERT_EQ(1, bucketVal) << "h1; 3rd round\n";
 
             genThird->saveBuckets(h2, h2 + 1, "test_dummySavedBuckets.txt");
             infile.open("test_dummySavedBuckets.txt");
@@ -140,7 +175,7 @@ TEST_F(HashTests, BucketDistribution) {
                 iss3 >> bucketVal;
             }
             infile.close();
-            ASSERT_EQ(1, bucketVal) << "h2;\n";
+            ASSERT_EQ(1, bucketVal) << "h2; 3rd round\n";
 
             genThird->saveBuckets(h3, h3 + 1, "test_dummySavedBuckets.txt");
             infile.open("test_dummySavedBuckets.txt");
@@ -150,7 +185,7 @@ TEST_F(HashTests, BucketDistribution) {
                 iss4 >> bucketVal;
             }
             infile.close();
-            ASSERT_EQ(1, bucketVal) << "h3;\n";
+            ASSERT_EQ(1, bucketVal) << "h3; 3rd round\n";
 
             genThird->saveBuckets(h4, h4 + 1, "test_dummySavedBuckets.txt");
             infile.open("test_dummySavedBuckets.txt");
@@ -160,7 +195,75 @@ TEST_F(HashTests, BucketDistribution) {
                 iss5 >> bucketVal;
             }
             infile.close();
-            ASSERT_EQ(1, bucketVal) << "h4;\n";
+            ASSERT_EQ(1, bucketVal) << "h4; 3rd round\n";
+
+            genThird->compute2ndRound(h0, h0 + 1);
+            h0 = genThird->getHash2nd(p0,p1,c0,c1,c2);
+            h1 = genThird->getHash2nd(p0,p1,c0,c1,c3);
+            h2 = genThird->getHash2nd(p0,p1,c0,c2,c3);
+            h3 = genThird->getHash2nd(p0,p1,c1,c2,c3);
+
+            {
+                genThird->saveBuckets2nd(h0, h0 + 1, "test_dummySavedBuckets.txt");
+                infile.open("test_dummySavedBuckets.txt");
+                std::getline(infile, fileBuffer);
+                std::istringstream iss(fileBuffer);
+                for (int i = 0; i < bucketIdx + 1; i++) {
+                    iss >> bucketVal;
+                }
+                infile.close();
+                ASSERT_EQ(1, bucketVal) << "h0; 2nd round\n";
+            }
+            {
+                genThird->saveBuckets2nd(h1, h1 + 1, "test_dummySavedBuckets.txt");
+                infile.open("test_dummySavedBuckets.txt");
+                std::getline(infile, fileBuffer);
+                std::istringstream iss(fileBuffer);
+                for (int i = 0; i < bucketIdx + 1; i++) {
+                    iss >> bucketVal;
+                }
+                infile.close();
+                ASSERT_EQ(1, bucketVal) << "h1; 2nd round\n";
+            }
+            {
+                genThird->saveBuckets2nd(h2, h2 + 1, "test_dummySavedBuckets.txt");
+                infile.open("test_dummySavedBuckets.txt");
+                std::getline(infile, fileBuffer);
+                std::istringstream iss(fileBuffer);
+                for (int i = 0; i < bucketIdx + 1; i++) {
+                    iss >> bucketVal;
+                }
+                infile.close();
+                ASSERT_EQ(1, bucketVal) << "h2; 2nd round\n";
+            }
+            {
+                genThird->saveBuckets2nd(h2, h2 + 1, "test_dummySavedBuckets.txt");
+                infile.open("test_dummySavedBuckets.txt");
+                std::getline(infile, fileBuffer);
+                std::istringstream iss(fileBuffer);
+                for (int i = 0; i < bucketIdx + 1; i++) {
+                    iss >> bucketVal;
+                }
+                infile.close();
+                ASSERT_EQ(1, bucketVal) << "h3; 2nd round\n";
+            }
+
+            genThird->compute1stRound(h0, h0 + 1);
+            genThird->compute1stRound(h1, h1 + 1);
+            genThird->compute1stRound(h2, h2 + 1);
+            genThird->compute1stRound(h3, h3 + 1);
+            h0 = genThird->getHash1st(p0,p1);
+            {
+                genThird->saveBuckets1st(h0, h0 + 1, "test_dummySavedBuckets.txt");
+                infile.open("test_dummySavedBuckets.txt");
+                std::getline(infile, fileBuffer);
+                std::istringstream iss(fileBuffer);
+                for (int i = 0; i < bucketIdx + 1; i++) {
+                    iss >> bucketVal;
+                }
+                infile.close();
+                ASSERT_EQ(4, bucketVal) << "h0=" << h0 << "; 1st round\n";
+            }
 
             delete genThird;
             count += 1;

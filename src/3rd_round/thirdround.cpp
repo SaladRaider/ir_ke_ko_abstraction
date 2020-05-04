@@ -18,6 +18,12 @@ ThirdRoundGenerator::ThirdRoundGenerator() {
     for (size_t i = 0; i < buckets.size(); i++) {
         buckets[i].fill(int8_t(0));
     }
+    for (size_t i = 0; i < buckets2nd.size(); i++) {
+        buckets2nd[i].fill(int8_t(0));
+    }
+    for (size_t i = 0; i < buckets1st.size(); i++) {
+        buckets1st[i].fill(0);
+    }
 }
 
 ThirdRoundGenerator::ThirdRoundGenerator(int n) {}
@@ -56,6 +62,40 @@ size_t ThirdRoundGenerator::getHash(int p0, int p1, int c0,
     return size_t(pHash + 1128*cHash);
 }
 
+size_t ThirdRoundGenerator::getHash2nd(int p0, int p1, int c0, int c1, int c2) {
+    p0 += 1;
+    p1 += 1;
+    c0 += 1;
+    c1 += 1;
+    c2 += 1;
+    if (c2 < p0) {
+        p0 -= 3;
+    } else if (c1 < p0) {
+        p0 -= 2;
+    } else if (c0 < p0) {
+        p0 -= 1;
+    }
+    if (c2 < p1) {
+        p1 -= 3;
+    } else if (c1 < p1) {
+        p1 -= 2;
+    } else if (c0 < p1) {
+        p1 -= 1;
+    }
+    int cHash, pHash;
+    cHash = (((c0-156)*c0+8111)*c0-7956)/6+
+            (c0-c1+1)*(c0+c1-104)/2-c1+c2-1;
+    pHash = ((99-p0)*p0-98)/2-p0+p1-1;
+    return size_t(pHash + 1176*cHash);
+}
+
+size_t ThirdRoundGenerator::getHash1st(int p0, int p1) {
+    p0 += 1;
+    p1 += 1;
+    size_t pHash = size_t(((105-p0)*p0-106)/2-p0+p1);
+    return pHash;
+}
+
 void ThirdRoundGenerator::compute3rdRound(unsigned long start,
                                           unsigned long stop,
                                           std::string fileInName) {
@@ -63,8 +103,8 @@ void ThirdRoundGenerator::compute3rdRound(unsigned long start,
     unsigned long printInterval = 27014190;
     size_t p0, p1, c0, c1, c2, c3, c4, bucketIdx;
     size_t h0, h1, h2, h3, h4;
-    size_t h = 2256;
     float mean;
+    c_inDeck.fill(true);
     std::ifstream infile;
     std::string fileBuffer;
     infile.open(fileInName);
@@ -102,10 +142,6 @@ void ThirdRoundGenerator::compute3rdRound(unsigned long start,
             buckets[h2][bucketIdx] += int8_t(1);
             buckets[h3][bucketIdx] += int8_t(1);
             buckets[h4][bucketIdx] += int8_t(1);
-            if (h0==h||h1==h||h2==h||h3==h||h4==h) {
-                printf("%lu: (%zu,%zu) (%zu,%zu,%zu,%zu,%zu) [%zu,%zu,%zu,%zu,%zu] [%f -> %zu]\n",
-                        count,p0,p1,c0,c1,c2,c3,c4,h0,h1,h2,h3,h4,mean,bucketIdx);
-            }
             if (count % printInterval == 0) {
                 printf("(%zu,%zu) (%zu,%zu,%zu,%zu,%zu), [%zu,%zu,%zu,%zu,%zu] [%s -> %f -> %zu]\n",
                        p0,p1,c0,c1,c2,c3,c4,
@@ -135,6 +171,105 @@ void ThirdRoundGenerator::compute3rdRound(unsigned long start,
     return;
 }
 
+void ThirdRoundGenerator::compute2ndRound(unsigned long start, unsigned long stop) {
+    size_t count = 0;
+    unsigned long printInterval = 2936325;
+    c_inDeck.fill(true);
+    size_t p0, p1, c0, c1, c2, c3, i;
+    size_t h0, h1, h2, h3;
+    std::int8_t bucketVal;
+    for (c0 = 0; c0 < 49; c0++)
+    for (c1 = c0 + 1; c1 < 50; c1++)
+    for (c2 = c1 + 1; c2 < 51; c2++)
+    for (c3 = c2 + 1; c3 < 52; c3++) {
+        c_inDeck[c0] = false;
+        c_inDeck[c1] = false;
+        c_inDeck[c2] = false;
+        c_inDeck[c3] = false;
+        for (p0 = 0; p0 < 51; p0++)
+        if (c_inDeck[p0])
+        for (p1 = p0 + 1; p1 < 52; p1++)
+        if (c_inDeck[p1]) {
+            if (count < start) {
+                count += 1;
+                continue;
+            }
+            h0 = getHash2nd(p0,p1,c0,c1,c2);
+            h1 = getHash2nd(p0,p1,c0,c1,c3);
+            h2 = getHash2nd(p0,p1,c0,c2,c3);
+            h3 = getHash2nd(p0,p1,c1,c2,c3);
+            for (i = 0; i < c_numBuckets; i++) {
+                bucketVal = buckets[count][i];
+                buckets2nd[h0][i] += bucketVal;
+                buckets2nd[h1][i] += bucketVal;
+                buckets2nd[h2][i] += bucketVal;
+                buckets2nd[h3][i] += bucketVal;
+            }
+            if (count % printInterval == 0) {
+                printf("(%zu,%zu) (%zu,%zu,%zu,%zu), [%zu,%zu,%zu,%zu]\n",
+                       p0,p1,c0,c1,c2,c3,h0,h1,h2,h3
+                );
+            }
+            count += 1;
+            if (count >= stop) {
+                printf("Processed %lu-%lu of 3rd round buckets.\n", start, stop);
+                return;
+            }
+        }
+        c_inDeck[c0] = true;
+        c_inDeck[c1] = true;
+        c_inDeck[c2] = true;
+        c_inDeck[c3] = true;
+    }
+    printf("Processed %lu-%lu of 3rd round buckets.\n", start, stop);
+    return;
+}
+
+void ThirdRoundGenerator::compute1stRound(unsigned long start, unsigned long stop) {
+    size_t count = 0;
+    c_inDeck.fill(true);
+    size_t p0, p1, c0, c1, c2, i, h0;
+    unsigned int bucketVal;
+    unsigned long printInterval = 249900;
+    for (c0 = 0; c0 < 50; c0++)
+    for (c1 = c0 + 1; c1 < 51; c1++)
+    for (c2 = c1 + 1; c2 < 52; c2++) {
+        c_inDeck[c0] = false;
+        c_inDeck[c1] = false;
+        c_inDeck[c2] = false;
+        for (p0 = 0; p0 < 51; p0++)
+        if (c_inDeck[p0])
+        for (p1 = p0 + 1; p1 < 52; p1++) {
+            if (c_inDeck[p1]) {
+                if (count < start) {
+                    count += 1;
+                    continue;
+                }
+                h0 = getHash1st(p0, p1);
+                for (i = 0; i < c_numBuckets; i++) {
+                    bucketVal = buckets2nd[count][i];
+                    buckets1st[h0][i] += bucketVal;
+                }
+                if (count % printInterval == 0) {
+                    printf("(%zu,%zu) (%zu,%zu,%zu), [%zu]\n",
+                           p0,p1, c0,c1,c2, h0
+                    );
+                }
+                count += 1;
+                if (count >= stop) {
+                    printf("Processed %lu-%lu of 2nd round.\n", start, stop);
+                    return;
+                }
+            }
+        }
+        c_inDeck[c0] = true;
+        c_inDeck[c1] = true;
+        c_inDeck[c2] = true;
+    }
+    printf("Processed %lu-%lu of 2nd round buckets.\n", start, stop);
+    return;
+}
+
 void ThirdRoundGenerator::saveBuckets(size_t start, size_t stop,
                                       std::string fileOutName) {
     std::ofstream f;
@@ -144,6 +279,32 @@ void ThirdRoundGenerator::saveBuckets(size_t start, size_t stop,
             f << int(buckets[i][j]) << ' ';
         }
         f << int(buckets[i][49]) << '\n';
+    }
+    f.close();
+}
+
+void ThirdRoundGenerator::saveBuckets2nd(size_t start, size_t stop,
+                                         std::string fileOutName) {
+    std::ofstream f;
+    f.open(fileOutName);
+    for (size_t i = start; i < stop; i++) {
+        for (size_t j = 0; j < 49; j++) {
+            f << int(buckets2nd[i][j]) << ' ';
+        }
+        f << int(buckets2nd[i][49]) << '\n';
+    }
+    f.close();
+}
+
+void ThirdRoundGenerator::saveBuckets1st(size_t start, size_t stop,
+                                         std::string fileOutName) {
+    std::ofstream f;
+    f.open(fileOutName);
+    for (size_t i = start; i < stop; i++) {
+        for (size_t j = 0; j < 49; j++) {
+            f << int(buckets1st[i][j]) << ' ';
+        }
+        f << int(buckets1st[i][49]) << '\n';
     }
     f.close();
 }

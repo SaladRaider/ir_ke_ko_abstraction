@@ -1367,7 +1367,7 @@ TEST_F(FourthRoundGeneratorTests, SecondRoundIntegration) {
 }
 
 TEST_F(FourthRoundGeneratorTests, FirstRoundIntegration) {
-    EXPECT_NEAR(0.653201, firstRoundMean(
+    EXPECT_NEAR(0.345836, firstRoundMean(
         "2D","7H"       // hero cards
     ), maxEquityDiff);
     EXPECT_NEAR(0.653201, firstRoundMean(
