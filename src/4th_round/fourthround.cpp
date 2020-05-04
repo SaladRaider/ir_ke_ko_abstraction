@@ -34,7 +34,7 @@
 // compute 2nd round distributions and means using 
 // etc..
 
-const std::array<int, 52> c_cardValue = {
+ const std::array<int, 52> FourthRoundGenerator::c_cardValue = {
     2, 2, 2, 2,
     3, 3, 3, 3,
     4, 4, 4, 4,
@@ -49,7 +49,7 @@ const std::array<int, 52> c_cardValue = {
     13, 13, 13, 13,
     14, 14, 14, 14
 };
-const std::array<Suit, 52> c_cardSuit = {
+const std::array<Suit, 52> FourthRoundGenerator::c_cardSuit = {
     HEART, DIAMOND, CLUB, SPADE,
     HEART, DIAMOND, CLUB, SPADE,
     HEART, DIAMOND, CLUB, SPADE,
@@ -64,31 +64,25 @@ const std::array<Suit, 52> c_cardSuit = {
     HEART, DIAMOND, CLUB, SPADE,
     HEART, DIAMOND, CLUB, SPADE
 };
-std::array<bool, 52> c_inDeck = {
-    true, true, true, true, true, true, true, true, true, true, true, true, true,
-    true, true, true, true, true, true, true, true, true, true, true, true, true,
-    true, true, true, true, true, true, true, true, true, true, true, true, true,
-    true, true, true, true, true, true, true, true, true, true, true, true, true
-};
 
 bool operator> (const HandType &h1, const HandType &h2)
 {
     if (h1.handIndex != h2.handIndex)
         return h1.handIndex > h2.handIndex;
     for (int i = 0; i < 4; i++)
-    if (c_cardValue[h1.keyCardIndex[i]] != c_cardValue[h2.keyCardIndex[i]])
-        return c_cardValue[h1.keyCardIndex[i]] > c_cardValue[h2.keyCardIndex[i]];
-    return c_cardValue[h1.keyCardIndex[4]] > c_cardValue[h2.keyCardIndex[4]];
+    if (FourthRoundGenerator::c_cardValue[h1.keyCardIndex[i]] != FourthRoundGenerator::c_cardValue[h2.keyCardIndex[i]])
+        return FourthRoundGenerator::c_cardValue[h1.keyCardIndex[i]] > FourthRoundGenerator::c_cardValue[h2.keyCardIndex[i]];
+    return FourthRoundGenerator::c_cardValue[h1.keyCardIndex[4]] > FourthRoundGenerator::c_cardValue[h2.keyCardIndex[4]];
 }
 
-void findHighCard(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
+void FourthRoundGenerator::findHighCard(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
     handType->handIndex = HIGH_CARD;
     for (int i = 0; i < 5; i++)
     handType->keyCardIndex[i] = 6 - i;
 }
 
-void findOnePair(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
+void FourthRoundGenerator::findOnePair(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
     handType->keyCardIndex[2] = -1;
     handType->keyCardIndex[3] = -1;
@@ -112,7 +106,7 @@ void findOnePair(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
     return;
 }
 
-void findTwoPair(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
+void FourthRoundGenerator::findTwoPair(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
     handType->keyCardIndex[4] = -1;
     handType->keyCardIndex[0] = -1;
@@ -139,7 +133,7 @@ void findTwoPair(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
     return;
 }
 
-void findThreeOfAKind(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
+void FourthRoundGenerator::findThreeOfAKind(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
     int j = 3;
     handType->keyCardIndex[3] = -1;
@@ -164,7 +158,7 @@ void findThreeOfAKind(std::unique_ptr<HandType> &handType, std::array<int, 7> *c
     return;
 }
 
-void findFourOfAKind(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
+void FourthRoundGenerator::findFourOfAKind(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
     handType->keyCardIndex[4] = -1;
     handType->handIndex = HIGH_CARD;
@@ -186,7 +180,7 @@ void findFourOfAKind(std::unique_ptr<HandType> &handType, std::array<int, 7> *ca
     return;
 }
 
-void findFullHouse(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
+void FourthRoundGenerator::findFullHouse(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards)
 {
     findThreeOfAKind(handType, cards);
     if (handType->handIndex != THREE_OF_A_KIND)
@@ -205,7 +199,7 @@ void findFullHouse(std::unique_ptr<HandType> &handType, std::array<int, 7> *card
     return;
 }
 
-void findFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards,
+void FourthRoundGenerator::findFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards,
                std::array<std::array<int, 5>, 4> *suitIdx,
                std::array<int, 4> *suitIdxSize)
 {
@@ -227,8 +221,7 @@ void findFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards,
     return;
 }
 
-std::array<int, 5> straight;
-void findStraight(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards,
+void FourthRoundGenerator::findStraight(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards,
                   std::array<int, 15> *straightMask)
 {
     int cardValue;
@@ -276,7 +269,7 @@ void findStraight(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards
     }
 }
 
-void findStraightFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards,
+void FourthRoundGenerator::findStraightFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards,
                        std::array<std::array<int, 5>, 4> *sFlush,
                        std::array<int, 4> *sFlushSize)
 {
@@ -319,7 +312,7 @@ void findStraightFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *
     return;
 }
 
-void findRoyalFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards,
+void FourthRoundGenerator::findRoyalFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards,
                     std::array<std::array<int, 5>, 4> *sFlush,
                     std::array<int, 4> *sFlushSize)
 {
@@ -331,7 +324,7 @@ void findRoyalFlush(std::unique_ptr<HandType> &handType, std::array<int, 7> *car
     return;
 }
 
-void findHandType(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards,
+void FourthRoundGenerator::findHandType(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards,
                   std::array<std::array<int, 5>, 4> *sFlush,
                   std::array<int, 4> *sFlushSize,
                   std::array<int, 15> *straightMask)
@@ -376,7 +369,7 @@ void findHandType(std::unique_ptr<HandType> &handType, std::array<int, 7> *cards
     return;
 }
 
-int hashGetValueArgs(std::array<int, 7> *cards)
+int FourthRoundGenerator::hashGetValueArgs(std::array<int, 7> *cards)
 {
     int hash = 0;
     for (int i = 0; i < 7; i++)
@@ -386,7 +379,7 @@ int hashGetValueArgs(std::array<int, 7> *cards)
     return hash;
 }
 
-int getValue(std::array<int, 7> *pCards, std::array<int, 7> *eCards,
+int FourthRoundGenerator::getValue(std::array<int, 7> *pCards, std::array<int, 7> *eCards,
              std::unordered_map<int, std::unique_ptr<HandType>> *handTypeCache,
              std::array<std::array<int, 5>, 4> *sFlush,
              std::array<int, 4> *sFlushSize,
@@ -398,21 +391,6 @@ int getValue(std::array<int, 7> *pCards, std::array<int, 7> *eCards,
     {
         (*handTypeCache)[pHash] = std::unique_ptr<HandType> (new HandType);
         findHandType((*handTypeCache)[pHash], pCards, sFlush, sFlushSize, straightMask);
-        /*
-        for (int i = 0; i < 5; i++) {
-            if ((*handTypeCache)[pHash]->keyCardIndex[i] < 0 ||
-                (*handTypeCache)[pHash]->keyCardIndex[i] > 6) {
-                printf("ERROR: %d,%d,%d,%d,%d,%d\n",
-                       (*hadTypeCache)[pHash]->handIndex,
-                       (*handTypeCache)[pHash]->keyCardIndex[0],
-                       (*handTypeCache)[pHash]->keyCardIndex[1],
-                       (*handTypeCache)[pHash]->keyCardIndex[2],
-                       (*handTypeCache)[pHash]->keyCardIndex[3],
-                       (*handTypeCache)[pHash]->keyCardIndex[4]
-                );
-            }
-        }
-        */
         (*handTypeCache)[pHash]->keyCardIndex[0] = (*pCards)[(*handTypeCache)[pHash]->keyCardIndex[0]];
         (*handTypeCache)[pHash]->keyCardIndex[1] = (*pCards)[(*handTypeCache)[pHash]->keyCardIndex[1]];
         (*handTypeCache)[pHash]->keyCardIndex[2] = (*pCards)[(*handTypeCache)[pHash]->keyCardIndex[2]];
@@ -423,21 +401,6 @@ int getValue(std::array<int, 7> *pCards, std::array<int, 7> *eCards,
     {
         (*handTypeCache)[eHash] = std::unique_ptr<HandType> (new HandType);
         findHandType((*handTypeCache)[eHash], eCards, sFlush, sFlushSize, straightMask);
-        /*
-        for (int i = 0; i < 5; i++) {
-            if ((*handTypeCache)[eHash]->keyCardIndex[i] < 0 ||
-                (*handTypeCache)[eHash]->keyCardIndex[i] > 6) {
-                printf("ERROR: %d,%d,%d,%d,%d,%d\n",
-                       (*handTypeCache)[eHash]->handIndex,
-                       (*handTypeCache)[eHash]->keyCardIndex[0],
-                       (*handTypeCache)[eHash]->keyCardIndex[1],
-                       (*handTypeCache)[eHash]->keyCardIndex[2],
-                       (*handTypeCache)[eHash]->keyCardIndex[3],
-                       (*handTypeCache)[eHash]->keyCardIndex[4]
-                );
-            }
-        }
-        */
         (*handTypeCache)[eHash]->keyCardIndex[0] = (*eCards)[(*handTypeCache)[eHash]->keyCardIndex[0]];
         (*handTypeCache)[eHash]->keyCardIndex[1] = (*eCards)[(*handTypeCache)[eHash]->keyCardIndex[1]];
         (*handTypeCache)[eHash]->keyCardIndex[2] = (*eCards)[(*handTypeCache)[eHash]->keyCardIndex[2]];
@@ -455,12 +418,42 @@ int getValue(std::array<int, 7> *pCards, std::array<int, 7> *eCards,
     return 1;
 }
 
-void compute4thRound(int tid, unsigned long start, unsigned long limit, std::string fileName)
+float FourthRoundGenerator::getMean(std::array<int, 7> *pCards, std::array<int, 7> *eCards,
+              std::unordered_map<int, std::unique_ptr<HandType>> *handTypeCache,
+              std::array<std::array<int, 5>, 4> *sFlush,
+              std::array<int, 4> *sFlushSize,
+              std::array<int, 15> *straightMask) {
+    int sum = 0;
+    int numCases = 0;
+    int c0 = (*eCards)[2];
+    int c1 = (*eCards)[3];
+    int c2 = (*eCards)[4];
+    int c3 = (*eCards)[5];
+    int c4 = (*eCards)[6];
+    for (int i7 = 0; i7 < 51; i7++)
+    if (c_inDeck[i7])
+    for (int i8 = i7 + 1; i8 < 52; i8++)
+    if (c_inDeck[i8])
+    {
+        (*eCards)[0] = i7;
+        (*eCards)[1] = i8;
+        (*eCards)[2] = c0;
+        (*eCards)[3] = c1;
+        (*eCards)[4] = c2;
+        (*eCards)[5] = c3;
+        (*eCards)[6] = c4;
+        std::sort(eCards->begin(), eCards->end());
+        numCases += 1;
+        sum += getValue(pCards, eCards, handTypeCache,
+                        sFlush, sFlushSize, straightMask);
+    }
+    return float(sum) / float(numCases * 2);
+}
+
+void FourthRoundGenerator::compute4thRound(int tid, unsigned long start, unsigned long limit, std::string fileName)
 {
     std::ofstream f;
     f.open(fileName);
-    f << "hand0,hand1,cc0,cc1,cc2,cc3,cc4,b0,b1,b2,mean\n";
-    //f << "hand0,hand1,cc0,cc1,cc2,cc3,cc4,handIndex,h0,h1,h2,h3,h4\n";
     int n = 52;
     int k = 2;
     int v=0, sum=0, numCases=0, pHash;
@@ -468,91 +461,55 @@ void compute4thRound(int tid, unsigned long start, unsigned long limit, std::str
     int i=0, i0=0, i1=0, i2=0, i3=0, i4=0, i5=0, i6=0, i7=0, i8=0;
     float mean=0.0f;
     unsigned long int innerCount = 0;
-    std::array<int, 3> buckets;
     std::unordered_map<int, std::unique_ptr<HandType>> handTypeCache;
-    std::array<int, 5> cCards;
     std::array<int, 7> pCards;
     std::array<int, 7> eCards;
     std::array<std::array<int, 5>, 4> sFlush;
     std::array<int, 4> sFlushSize;
     std::array<int, 15> straightMask;
-    for (i2 = 0; i2 < n - 5 + 1; i2++)
-    for (i3 = i2 + 1; i3 < n - 5 + 2; i3++)
-    for (i4 = i3 + 1; i4 < n - 5 + 3; i4++)
-    for (i5 = i4 + 1; i5 < n - 5 + 4; i5++)
-    for (i6 = i5 + 1; i6 < n - 5 + 5; i6++)
-    {
+    for (i2 = 0; i2 < 48; i2++)
+    for (i3 = i2 + 1; i3 < 49; i3++)
+    for (i4 = i3 + 1; i4 < 50; i4++)
+    for (i5 = i4 + 1; i5 < 51; i5++)
+    for (i6 = i5 + 1; i6 < 52; i6++) {
         c_inDeck[i2] = false;
         c_inDeck[i3] = false;
         c_inDeck[i4] = false;
         c_inDeck[i5] = false;
         c_inDeck[i6] = false;
-        for (i0 = 0; i0 < n - 2 + 1; i0++)
+        for (i0 = 0; i0 < 51; i0++)
         if(c_inDeck[i0])
-        for (i1 = i0 + 1; i1 < n - 2 + 2; i1++)
-        if (c_inDeck[i1])
-        {
-            //printf("%d %d %d %d %d %d %d %d %d\n", i0, i1, i2, i3, i4, i5, i6, i7, i8);
+        for (i1 = i0 + 1; i1 < 52; i1++)
+        if (c_inDeck[i1]) {
             if (count < start) {
                 count += 1;
                 continue;
             }
             c_inDeck[i0] = false;
             c_inDeck[i1] = false;
-            //printf("tid: %d, count: %d\n", tid, count);
-            cCards = {i2, i3, i4, i5, i6};
+
             pCards = {i0, i1, i2, i3, i4, i5, i6};
             std::sort(pCards.begin(), pCards.end());
+            eCards = {0, 0, i2, i3, i4, i5, i6};
+
+            f << getMean(&pCards, &eCards, &handTypeCache,
+                         &sFlush, &sFlushSize, &straightMask) << '\n';
+
             count += 1;
-            sum = 0;
-            numCases = 0;
-            buckets.fill(0);
-            for (i7 = 0; i7 < n - 2 + 1; i7++)
-            if (c_inDeck[i7])
-            for (i8 = i7 + 1; i8 < n - 2 + 2; i8++)
-            if (c_inDeck[i8])
-            {
-                eCards = {i7, i8, i2, i3, i4, i5, i6};
-                std::sort(eCards.begin(), eCards.end());
-                v = getValue(&pCards, &eCards, &handTypeCache,
-                             &sFlush, &sFlushSize, &straightMask);
-                buckets[v] += 1;
-                numCases += 1;
-                sum += v;
-            }
-            if (handTypeCache.size() > 1081) // 52 choose 2 -old 8 * (52 choose 2) * (50 choose 2) : ~1 GB mem
-            {
-                for (auto it = handTypeCache.begin(); it != handTypeCache.end(); it++)
-                {
-                    it->second.reset(nullptr);
-                }
-                handTypeCache.clear();
-            }
-            mean = (float) sum / (numCases * 2);
-            f << i0 << ',' << i1 << ',' << i2 << ',' << i3 << ',' << i4 << ',' << i5 << ',' << i6;
-            f << ',' << buckets[0] << ',' << buckets[1] << ',' << buckets[2] << ',' << mean << '\n';
-            /*
-            eCards = {i7, i8, i2, i3, i4, i5, i6};
-            std::sort(eCards.begin(), eCards.end());
-            v = getValue(&pCards, &eCards, &handTypeCache,
-                         &sFlush, &sFlushSize, &straightMask);
-            pHash = hashGetValueArgs(&pCards);
-            f << i0 << ',' << i1 << ',' << i2 << ',' << i3 << ',' << i4 << ',' << i5 << ',' << i6;
-            f << ',' << handTypeCache[pHash]->handIndex;
-            f << ',' << handTypeCache[pHash]->keyCardIndex[0];
-            f << ',' << handTypeCache[pHash]->keyCardIndex[1];
-            f << ',' << handTypeCache[pHash]->keyCardIndex[2];
-            f << ',' << handTypeCache[pHash]->keyCardIndex[3];
-            f << ',' << handTypeCache[pHash]->keyCardIndex[4] << '\n';
-            */
-            if (limit > 0 && count >= limit)
-            {
-                printf("handTypeCache.size() = %d\n", handTypeCache.size());
+            if (limit > 0 && count >= limit) {
                 f.close();
                 return;
             }
             c_inDeck[i0] = true;
             c_inDeck[i1] = true;
+        }
+        if (handTypeCache.size() > 1081) // 52 choose 2 -old 8 * (52 choose 2) * (50 choose 2) : ~1 GB mem
+        {
+            for (auto it = handTypeCache.begin(); it != handTypeCache.end(); it++)
+            {
+                it->second.reset(nullptr);
+            }
+            handTypeCache.clear();
         }
         c_inDeck[i2] = true;
         c_inDeck[i3] = true;
@@ -560,7 +517,6 @@ void compute4thRound(int tid, unsigned long start, unsigned long limit, std::str
         c_inDeck[i5] = true;
         c_inDeck[i6] = true;
     }
-    printf("handTypeCache.size() = %d\n", handTypeCache.size());
     f.close();
     return;
 }

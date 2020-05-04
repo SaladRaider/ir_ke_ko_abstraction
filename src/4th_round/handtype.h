@@ -17,4 +17,6 @@ struct HandType
     friend bool operator> (const HandType &h1, const HandType &h2);
 };
 
+bool operator> (const HandType &h1, const HandType &h2);
+
 #endif

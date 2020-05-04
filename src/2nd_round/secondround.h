@@ -8,7 +8,6 @@
 class SecondRoundGenerator {
 private:
     const size_t c_numBuckets = 50;
-std::array<std::array<unsigned int, 50>, 25989600> buckets;
 public:
     std::array<bool, 52> c_inDeck = {
         true, true, true, true, true, true, true, true, true, true, true, true, true,
@@ -16,6 +15,7 @@ public:
         true, true, true, true, true, true, true, true, true, true, true, true, true,
         true, true, true, true, true, true, true, true, true, true, true, true, true
     };
+    std::array<std::array<unsigned int, 50>, 25989600> buckets;
     SecondRoundGenerator();
     SecondRoundGenerator(int n);
     size_t getHash(int p0, int p1, int c0, int c1, int c2);

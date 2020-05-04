@@ -17,6 +17,7 @@ add_library(2nd_compute_dist_lib STATIC src/2nd_round/secondround.cpp)
 add_executable(fourth_round_tests tests/FourthRoundTests.cpp)
 add_executable(third_round_tests tests/ThirdRoundTests.cpp)
 add_executable(second_round_tests tests/SecondRoundTests.cpp)
+add_executable(integration_tests tests/IntegrationTests.cpp)
 target_link_libraries(fourth_round_tests PUBLIC
     gtest_main
     4th_compute_dist_lib
@@ -28,6 +29,12 @@ target_link_libraries(third_round_tests PUBLIC
 target_link_libraries(second_round_tests PUBLIC
     gtest_main
     2nd_compute_dist_lib
+)
+target_link_libraries(integration_tests PUBLIC
+    gtest_main
+    2nd_compute_dist_lib
+    3rd_compute_dist_lib
+    4th_compute_dist_lib
 )
 
 add_test(

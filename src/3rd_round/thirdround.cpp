@@ -79,12 +79,11 @@ void ThirdRoundGenerator::compute3rdRound(unsigned long start,
         c_inDeck[c3] = false;
         c_inDeck[c4] = false;
         for (p0 = 0; p0 < 51; p0++)
-        if(c_inDeck[p0])
+        if (c_inDeck[p0])
         for (p1 = p0 + 1; p1 < 52; p1++)
         if (c_inDeck[p1]) {
             if (count < start) {
                 count += 1;
-                printf("skipping...\n");
                 continue;
             }
             std::getline(infile, fileBuffer);

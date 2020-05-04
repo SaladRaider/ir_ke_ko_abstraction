@@ -6,16 +6,16 @@
 
 typedef enum HandResult { LOSS, TIE, WIN };
 
-class HandEvalTests : public ::testing::Test {
+class FourthRoundGeneratorTests : public ::testing::Test {
 protected:
     // You can remove any or all of the following functions if its body
     // is empty.
 
-    HandEvalTests() {
+    FourthRoundGeneratorTests() {
         // You can do set-up work for each test here.
     }
 
-    virtual ~HandEvalTests() {
+    virtual ~FourthRoundGeneratorTests() {
         // You can do clean-up work that doesn't throw exceptions here.
     }
 
@@ -31,6 +31,133 @@ protected:
         // before the destructor).
     }
 
+    float firstRoundMean(std::string p0Str, std::string p1Str) {
+        int p0Target = this->deckMap[p0Str];
+        int p1Target = this->deckMap[p1Str];
+        int p0, p1, c0, c1, c2, c3, c4;
+        p0 = p0Target;
+        p1 = p1Target;
+        gen.c_inDeck[p0] = false;
+        gen.c_inDeck[p1] = false;
+        double mean = 0;
+        double meanSum = 0;
+        int numMeans = 0;
+        for (c0 = 0; c0 < 48; c0++)
+        if (gen.c_inDeck[c0])
+        for (c1 = c0+1; c1 < 49; c1++)
+        if (gen.c_inDeck[c1])
+        for (c2 = c1+1; c2 < 50; c2++)
+        if (gen.c_inDeck[c2])
+        for (c3 = c2+1; c3 < 51; c3++)
+        if (gen.c_inDeck[c3])
+        for (c4 = c3+1; c4 < 52; c4++) {
+            if (gen.c_inDeck[c4]) {
+                gen.c_inDeck[c0] = false;
+                gen.c_inDeck[c1] = false;
+                gen.c_inDeck[c2] = false;
+                gen.c_inDeck[c3] = false;
+                gen.c_inDeck[c4] = false;
+
+                pCards = {p0, p1, c0, c1, c2, c3, c4};
+                std::sort(pCards.begin(), pCards.end());
+                eCards = {0, 0, c0, c1, c2, c3, c4};
+                mean = gen.getMean(&pCards, &eCards, &handTypeCache, &sFlush, &sFlushSize,
+                                   &straightMask);
+                meanSum += mean;
+                numMeans += 1;
+                gen.c_inDeck[c0] = true;
+                gen.c_inDeck[c1] = true;
+                gen.c_inDeck[c2] = true;
+                gen.c_inDeck[c3] = true;
+                gen.c_inDeck[c4] = true;
+            }
+        }
+        gen.c_inDeck[c0] = true;
+        gen.c_inDeck[c1] = true;
+        gen.c_inDeck[c2] = true;
+        gen.c_inDeck[p0] = true;
+        gen.c_inDeck[p1] = true;
+        return meanSum / double(numMeans);
+    }
+
+    float secondRoundMean(std::string p0Str, std::string p1Str, std::string c0Str,
+                          std::string c1Str, std::string c2Str) {
+        int p0Target = this->deckMap[p0Str];
+        int p1Target = this->deckMap[p1Str];
+        int c0Target = this->deckMap[c0Str];
+        int c1Target = this->deckMap[c1Str];
+        int c2Target = this->deckMap[c2Str];
+        int p0, p1, c0, c1, c2, c3, c4;
+        c0 = c0Target;
+        c1 = c1Target;
+        c2 = c2Target;
+        p0 = p0Target;
+        p1 = p1Target;
+        gen.c_inDeck[c0] = false;
+        gen.c_inDeck[c1] = false;
+        gen.c_inDeck[c2] = false;
+        gen.c_inDeck[p0] = false;
+        gen.c_inDeck[p1] = false;
+        float mean = 0;
+        float meanSum = 0;
+        int numMeans = 0;
+        for (c3 = 0; c3 < 51; c3++)
+        if (gen.c_inDeck[c3])
+        for (c4 = c3+1; c4 < 52; c4++) {
+            if (gen.c_inDeck[c4]) {
+                gen.c_inDeck[c3] = false;
+                gen.c_inDeck[c4] = false;
+
+                pCards = {p0, p1, c0, c1, c2, c3, c4};
+                std::sort(pCards.begin(), pCards.end());
+                eCards = {0, 0, c0, c1, c2, c3, c4};
+                mean = gen.getMean(&pCards, &eCards, &handTypeCache, &sFlush, &sFlushSize,
+                                   &straightMask);
+                meanSum += mean;
+                numMeans += 1;
+                gen.c_inDeck[c3] = true;
+                gen.c_inDeck[c4] = true;
+            }
+        }
+        gen.c_inDeck[c0] = true;
+        gen.c_inDeck[c1] = true;
+        gen.c_inDeck[c2] = true;
+        gen.c_inDeck[p0] = true;
+        gen.c_inDeck[p1] = true;
+        return meanSum / float(numMeans);
+    }
+
+    float getMeanTest(std::string p0Str, std::string p1Str, std::string c0Str, std::string c1Str,
+                      std::string c2Str, std::string c3Str, std::string c4Str) {
+        int p0 = this->deckMap[p0Str];
+        int p1 = this->deckMap[p1Str];
+        int c0 = this->deckMap[c0Str];
+        int c1 = this->deckMap[c1Str];
+        int c2 = this->deckMap[c2Str];
+        int c3 = this->deckMap[c3Str];
+        int c4 = this->deckMap[c4Str];
+        gen.c_inDeck[p0] = false;
+        gen.c_inDeck[p1] = false;
+        gen.c_inDeck[c0] = false;
+        gen.c_inDeck[c1] = false;
+        gen.c_inDeck[c2] = false;
+        gen.c_inDeck[c3] = false;
+        gen.c_inDeck[c4] = false;
+        pCards = {p0, p1, c0, c1, c2, c3, c4};
+        std::sort(pCards.begin(), pCards.end());
+        eCards = {45, 51, c0, c1, c2, c3, c4};
+        float mean = gen.getMean(&pCards, &eCards, &handTypeCache, &sFlush, &sFlushSize,
+                                 &straightMask);
+        gen.c_inDeck[p0] = true;
+        gen.c_inDeck[p1] = true;
+        gen.c_inDeck[c0] = true;
+        gen.c_inDeck[c1] = true;
+        gen.c_inDeck[c2] = true;
+        gen.c_inDeck[c3] = true;
+        gen.c_inDeck[c4] = true;
+        return mean;
+    }
+
     void expectHandType(std::string s0, std::string s1, std::string s2,
                         std::string s3, std::string s4, std::string s5,
                         std::string s6, HandIndex handIndex,
@@ -42,7 +169,7 @@ protected:
             this->deckMap[s6]
         };
         std::sort(cards.begin(), cards.end());
-        findHandType(handType, &cards, &sFlush, &sFlushSize, &straightMask);
+        gen.findHandType(handType, &cards, &sFlush, &sFlushSize, &straightMask);
         EXPECT_EQ(handIndex, handType->handIndex);
         EXPECT_EQ(c0, handType->keyCardIndex[0]);
         EXPECT_EQ(c1, handType->keyCardIndex[1]);
@@ -68,18 +195,22 @@ protected:
         };
         std::sort(pCards.begin(), pCards.end());
         std::sort(eCards.begin(), eCards.end());
-        int result = getValue(
+        int result = gen.getValue(
             &pCards, &eCards,
             &handTypeCache, &sFlush, &sFlushSize, &straightMask);
         EXPECT_EQ(expected, result) << "pCards:(" << p0 << "," << p1 << ") eCards:(" << e0 << "," << e1 << ") cCards:(" << c0 << "," << c1 << "," << c2 << "," << c3 << "," << c4 << ")\n";
     }
 
     // Objects declared here can be used by all tests in the test case for Project1.
+    FourthRoundGenerator gen;
+    const float maxEquityDiff = 0.01;
     std::unique_ptr<HandType> handType = std::unique_ptr<HandType> (new HandType);
     std::unordered_map<int, std::unique_ptr<HandType>> handTypeCache;
     std::array<std::array<int, 5>, 4> sFlush;
     std::array<int, 4> sFlushSize;
     std::array<int, 15> straightMask;
+    std::array<int, 7> pCards;
+    std::array<int, 7> eCards;
     std::unordered_map<std::string, int> deckMap = {
         {"2H",0}, {"2D",1}, {"2C",2}, {"2S",3},
         {"3H",4}, {"3D",5}, {"3C",6}, {"3S",7},
@@ -95,33 +226,48 @@ protected:
         {"KH",44}, {"KD",45}, {"KC",46}, {"KS",47},
         {"AH",48}, {"AD",49}, {"AC",50}, {"AS",51}
     };
+    std::unordered_map<int, std::string> deckRevMap = {
+        {0,"2H"}, {1,"2D"}, {2,"2C"}, {3,"2S"},
+        {4,"3H"}, {5,"3D"}, {6,"3C"}, {7,"3S"},
+        {8,"4H"}, {9,"4D"}, {10,"4C"}, {11,"4S"},
+        {12,"5H"}, {13,"5D"}, {14,"5C"}, {15,"5S"},
+        {16,"6H"}, {17,"6D"}, {18,"6C"}, {19,"6S"},
+        {20,"7H"}, {21,"7D"}, {22,"7C"}, {23,"7S"},
+        {24,"8H"}, {25,"8D"}, {26,"8C"}, {27,"8S"},
+        {28,"9H"}, {29,"9D"}, {30,"9C"}, {31,"9S"},
+        {32,"TH"}, {33,"TD"}, {34,"TC"}, {35,"TS"},
+        {36,"JH"}, {37,"JD"}, {38,"JC"}, {39,"JS"},
+        {40,"QH"}, {41,"QD"}, {42,"QC"}, {43,"QS"},
+        {44,"KH"}, {45,"KD"}, {46,"KC"}, {47,"KS"},
+        {48,"AH"}, {49,"AD"}, {50,"AC"}, {51,"AS"}
+    };
 };
 
-TEST_F(HandEvalTests, HighCard) {
+TEST_F(FourthRoundGeneratorTests, HighCard) {
     expectHandType(
         "2H", "4D", "5C", "6H", "7H", "9H", "TD",
         HIGH_CARD, 6, 5, 4, 3, 2, handType);
 }
 
-TEST_F(HandEvalTests, OnePair) {
+TEST_F(FourthRoundGeneratorTests, OnePair) {
     expectHandType(
         "2H", "2D", "5C", "6H", "7H", "9H", "TD",
         ONE_PAIR, 1, 0, 6, 5, 4, handType);
 }
 
-TEST_F(HandEvalTests, TwoPair) {
+TEST_F(FourthRoundGeneratorTests, TwoPair) {
     expectHandType(
         "2H", "2D", "5C", "6H", "7H", "7D", "TD",
         TWO_PAIR, 5, 4, 1, 0, 6, handType);
 }
 
-TEST_F(HandEvalTests, ThreeOfAKind) {
+TEST_F(FourthRoundGeneratorTests, ThreeOfAKind) {
     expectHandType(
         "2H", "2D", "2C", "6H", "7H", "9D", "TD",
         THREE_OF_A_KIND, 2, 1, 0, 6, 5, handType);
 }
 
-TEST_F(HandEvalTests, Straight) {
+TEST_F(FourthRoundGeneratorTests, Straight) {
     expectHandType(
         "2H", "3D", "4C", "5H", "6H", "9D", "TD",
         STRAIGHT, 4, 3, 2, 1, 0, handType);
@@ -130,25 +276,25 @@ TEST_F(HandEvalTests, Straight) {
         STRAIGHT, 3, 2, 1, 0, 6, handType);
 }
 
-TEST_F(HandEvalTests, Flush) {
+TEST_F(FourthRoundGeneratorTests, Flush) {
     expectHandType(
         "2H", "3H", "4H", "5H", "7H", "9D", "TD",
         FLUSH, 4, 3, 2, 1, 0, handType);
 }
 
-TEST_F(HandEvalTests, FullHouse) {
+TEST_F(FourthRoundGeneratorTests, FullHouse) {
     expectHandType(
         "2H", "2D", "2C", "5H", "9H", "9D", "TD",
         FULL_HOUSE, 2, 1, 0, 5, 4, handType);
 }
 
-TEST_F(HandEvalTests, FourOfAKind) {
+TEST_F(FourthRoundGeneratorTests, FourOfAKind) {
     expectHandType(
         "2H", "2D", "2C", "2S", "9H", "9D", "TD",
         FOUR_OF_A_KIND, 3, 2, 1, 0, 6, handType);
 }
 
-TEST_F(HandEvalTests, StraightFlush) {
+TEST_F(FourthRoundGeneratorTests, StraightFlush) {
     expectHandType(
         "2H", "3H", "4H", "5H", "6H", "9D", "TD",
         STRAIGHT_FLUSH, 4, 3, 2, 1, 0, handType);
@@ -157,13 +303,13 @@ TEST_F(HandEvalTests, StraightFlush) {
         STRAIGHT_FLUSH, 3, 2, 1, 0, 6, handType);
 }
 
-TEST_F(HandEvalTests, RoyalFlush) {
+TEST_F(FourthRoundGeneratorTests, RoyalFlush) {
     expectHandType(
         "9C", "9H", "TD", "JD", "QD", "KD", "AD",
         ROYAL_FLUSH, 6, 5, 4, 3, 2, handType);
 }
 
-TEST_F(HandEvalTests, HighCardVSOnePair) {
+TEST_F(FourthRoundGeneratorTests, HighCardVSOnePair) {
     expectHandComparison(
         "AC", "2H",                   // hero cards
         "3D", "5S",                   // villan cards
@@ -176,7 +322,7 @@ TEST_F(HandEvalTests, HighCardVSOnePair) {
         WIN);
 }
 
-TEST_F(HandEvalTests, HighCardVSTwoPair) {
+TEST_F(FourthRoundGeneratorTests, HighCardVSTwoPair) {
     expectHandComparison(
         "AC", "2H",                   // hero cards
         "3D", "TS",                   // villan cards
@@ -189,7 +335,7 @@ TEST_F(HandEvalTests, HighCardVSTwoPair) {
         WIN);
 }
 
-TEST_F(HandEvalTests, HighCardVSThreeOfAKind) {
+TEST_F(FourthRoundGeneratorTests, HighCardVSThreeOfAKind) {
     expectHandComparison(
         "AC", "2H",                   // hero cards
         "3D", "3H",                   // villan cards
@@ -202,7 +348,7 @@ TEST_F(HandEvalTests, HighCardVSThreeOfAKind) {
         WIN);
 }
 
-TEST_F(HandEvalTests, HighCardVSStraight) {
+TEST_F(FourthRoundGeneratorTests, HighCardVSStraight) {
     expectHandComparison(
         "AC", "2H",                   // hero cards
         "9D", "KH",                   // villan cards
@@ -215,7 +361,7 @@ TEST_F(HandEvalTests, HighCardVSStraight) {
         WIN);
 }
 
-TEST_F(HandEvalTests, HighCardVSFlush) {
+TEST_F(FourthRoundGeneratorTests, HighCardVSFlush) {
     expectHandComparison(
         "AC", "2H",                   // hero cards
         "4H", "3H",                   // villan cards
@@ -228,7 +374,7 @@ TEST_F(HandEvalTests, HighCardVSFlush) {
         WIN);
 }
 
-TEST_F(HandEvalTests, HighCardVSStraightFlush) {
+TEST_F(FourthRoundGeneratorTests, HighCardVSStraightFlush) {
     expectHandComparison(
         "AC", "2H",                   // hero cards
         "9H", "KH",                   // villan cards
@@ -241,7 +387,7 @@ TEST_F(HandEvalTests, HighCardVSStraightFlush) {
         WIN);
 }
 
-TEST_F(HandEvalTests, HighCardVSRoyalFlush) {
+TEST_F(FourthRoundGeneratorTests, HighCardVSRoyalFlush) {
     expectHandComparison(
         "AC", "2H",                   // hero cards
         "KH", "AH",                   // villan cards
@@ -254,7 +400,7 @@ TEST_F(HandEvalTests, HighCardVSRoyalFlush) {
         WIN);
 }
 
-TEST_F(HandEvalTests, OnePairVSTwoPair) {
+TEST_F(FourthRoundGeneratorTests, OnePairVSTwoPair) {
     expectHandComparison(
         "AC", "3S",                   // hero cards
         "3H", "8C",                   // villan cards
@@ -267,7 +413,7 @@ TEST_F(HandEvalTests, OnePairVSTwoPair) {
         WIN);
 }
 
-TEST_F(HandEvalTests, OnePairVSThreeOfAKind) {
+TEST_F(FourthRoundGeneratorTests, OnePairVSThreeOfAKind) {
     expectHandComparison(
         "AC", "3S",                   // hero cards
         "3H", "3D",                   // villan cards
@@ -280,7 +426,7 @@ TEST_F(HandEvalTests, OnePairVSThreeOfAKind) {
         WIN);
 }
 
-TEST_F(HandEvalTests, OnePairVSStraight) {
+TEST_F(FourthRoundGeneratorTests, OnePairVSStraight) {
     expectHandComparison(
         "AC", "3S",                   // hero cards
         "9H", "KD",                   // villan cards
@@ -293,7 +439,7 @@ TEST_F(HandEvalTests, OnePairVSStraight) {
         WIN);
 }
 
-TEST_F(HandEvalTests, OnePairVSFlush) {
+TEST_F(FourthRoundGeneratorTests, OnePairVSFlush) {
     expectHandComparison(
         "AC", "QS",                   // hero cards
         "2H", "3H",                   // villan cards
@@ -306,7 +452,7 @@ TEST_F(HandEvalTests, OnePairVSFlush) {
         WIN);
 }
 
-TEST_F(HandEvalTests, OnePairVSFullHouse) {
+TEST_F(FourthRoundGeneratorTests, OnePairVSFullHouse) {
     expectHandComparison(
         "AC", "KS",                   // hero cards
         "2H", "3H",                   // villan cards
@@ -319,7 +465,7 @@ TEST_F(HandEvalTests, OnePairVSFullHouse) {
         WIN);
 }
 
-TEST_F(HandEvalTests, OnePairVSFourOfAKind) {
+TEST_F(FourthRoundGeneratorTests, OnePairVSFourOfAKind) {
     expectHandComparison(
         "AC", "KS",                   // hero cards
         "3S", "3H",                   // villan cards
@@ -332,7 +478,7 @@ TEST_F(HandEvalTests, OnePairVSFourOfAKind) {
         WIN);
 }
 
-TEST_F(HandEvalTests, OnePairVSStraightFlush) {
+TEST_F(FourthRoundGeneratorTests, OnePairVSStraightFlush) {
     expectHandComparison(
         "AC", "QS",                   // hero cards
         "8H", "9H",                   // villan cards
@@ -345,7 +491,7 @@ TEST_F(HandEvalTests, OnePairVSStraightFlush) {
         WIN);
 }
 
-TEST_F(HandEvalTests, OnePairVSRoyalFlush) {
+TEST_F(FourthRoundGeneratorTests, OnePairVSRoyalFlush) {
     expectHandComparison(
         "AC", "QS",                   // hero cards
         "KH", "AH",                   // villan cards
@@ -358,7 +504,7 @@ TEST_F(HandEvalTests, OnePairVSRoyalFlush) {
         WIN);
 }
 
-TEST_F(HandEvalTests, TwoPairVThreeOfAKind) {
+TEST_F(FourthRoundGeneratorTests, TwoPairVThreeOfAKind) {
     expectHandComparison(
         "AC", "QS",                   // hero cards
         "2H", "3S",                   // villan cards
@@ -371,7 +517,7 @@ TEST_F(HandEvalTests, TwoPairVThreeOfAKind) {
         WIN);
 }
 
-TEST_F(HandEvalTests, TwoPairVSStraight) {
+TEST_F(FourthRoundGeneratorTests, TwoPairVSStraight) {
     expectHandComparison(
         "AC", "QS",                   // hero cards
         "8H", "9S",                   // villan cards
@@ -384,7 +530,7 @@ TEST_F(HandEvalTests, TwoPairVSStraight) {
         WIN);
 }
 
-TEST_F(HandEvalTests, TwoPairVSFlush) {
+TEST_F(FourthRoundGeneratorTests, TwoPairVSFlush) {
     expectHandComparison(
         "AC", "QS",                   // hero cards
         "8H", "2H",                   // villan cards
@@ -397,7 +543,7 @@ TEST_F(HandEvalTests, TwoPairVSFlush) {
         WIN);
 }
 
-TEST_F(HandEvalTests, TwoPairVSFullHouse) {
+TEST_F(FourthRoundGeneratorTests, TwoPairVSFullHouse) {
     expectHandComparison(
         "AC", "QS",                   // hero cards
         "3H", "TC",                   // villan cards
@@ -410,7 +556,7 @@ TEST_F(HandEvalTests, TwoPairVSFullHouse) {
         WIN);
 }
 
-TEST_F(HandEvalTests, TwoPairVSFourOfAKind) {
+TEST_F(FourthRoundGeneratorTests, TwoPairVSFourOfAKind) {
     expectHandComparison(
         "AC", "QS",                   // hero cards
         "3H", "3S",                   // villan cards
@@ -423,7 +569,7 @@ TEST_F(HandEvalTests, TwoPairVSFourOfAKind) {
         WIN);
 }
 
-TEST_F(HandEvalTests, TwoPairVSStraightFlush) {
+TEST_F(FourthRoundGeneratorTests, TwoPairVSStraightFlush) {
     expectHandComparison(
         "AC", "QS",                   // hero cards
         "8H", "9H",                   // villan cards
@@ -436,7 +582,7 @@ TEST_F(HandEvalTests, TwoPairVSStraightFlush) {
         WIN);
 }
 
-TEST_F(HandEvalTests, TwoPairVSRoyalFlush) {
+TEST_F(FourthRoundGeneratorTests, TwoPairVSRoyalFlush) {
     expectHandComparison(
         "AC", "QS",                   // hero cards
         "KH", "AH",                   // villan cards
@@ -449,7 +595,7 @@ TEST_F(HandEvalTests, TwoPairVSRoyalFlush) {
         WIN);
 }
 
-TEST_F(HandEvalTests, ThreeOfAKindVSStraight) {
+TEST_F(FourthRoundGeneratorTests, ThreeOfAKindVSStraight) {
     expectHandComparison(
         "AC", "3S",                   // hero cards
         "8H", "9S",                   // villan cards
@@ -462,7 +608,7 @@ TEST_F(HandEvalTests, ThreeOfAKindVSStraight) {
         WIN);
 }
 
-TEST_F(HandEvalTests, ThreeOfAKindVSFlush) {
+TEST_F(FourthRoundGeneratorTests, ThreeOfAKindVSFlush) {
     expectHandComparison(
         "AC", "3S",                   // hero cards
         "8H", "4H",                   // villan cards
@@ -475,7 +621,7 @@ TEST_F(HandEvalTests, ThreeOfAKindVSFlush) {
         WIN);
 }
 
-TEST_F(HandEvalTests, ThreeOfAKindVSFullHouse) {
+TEST_F(FourthRoundGeneratorTests, ThreeOfAKindVSFullHouse) {
     expectHandComparison(
         "AC", "3S",                   // hero cards
         "3H", "TD",                   // villan cards
@@ -488,7 +634,7 @@ TEST_F(HandEvalTests, ThreeOfAKindVSFullHouse) {
         WIN);
 }
 
-TEST_F(HandEvalTests, ThreeOfAKindVSFourOfAKind) {
+TEST_F(FourthRoundGeneratorTests, ThreeOfAKindVSFourOfAKind) {
     expectHandComparison(
         "QD", "QS",                   // hero cards
         "3H", "3S",                   // villan cards
@@ -501,7 +647,7 @@ TEST_F(HandEvalTests, ThreeOfAKindVSFourOfAKind) {
         WIN);
 }
 
-TEST_F(HandEvalTests, ThreeOfAKindVSStraightFlush) {
+TEST_F(FourthRoundGeneratorTests, ThreeOfAKindVSStraightFlush) {
     expectHandComparison(
         "AC", "3S",                   // hero cards
         "8H", "9H",                   // villan cards
@@ -514,7 +660,7 @@ TEST_F(HandEvalTests, ThreeOfAKindVSStraightFlush) {
         WIN);
 }
 
-TEST_F(HandEvalTests, ThreeOfAKindVSRoyalFlush) {
+TEST_F(FourthRoundGeneratorTests, ThreeOfAKindVSRoyalFlush) {
     expectHandComparison(
         "AC", "3S",                   // hero cards
         "KH", "AH",                   // villan cards
@@ -527,7 +673,7 @@ TEST_F(HandEvalTests, ThreeOfAKindVSRoyalFlush) {
         WIN);
 }
 
-TEST_F(HandEvalTests, StraightVSFlush) {
+TEST_F(FourthRoundGeneratorTests, StraightVSFlush) {
     expectHandComparison(
         "KC", "AC",                   // hero cards
         "2H", "3H",                   // villan cards
@@ -540,7 +686,7 @@ TEST_F(HandEvalTests, StraightVSFlush) {
         WIN);
 }
 
-TEST_F(HandEvalTests, StraightVSFullHouse) {
+TEST_F(FourthRoundGeneratorTests, StraightVSFullHouse) {
     expectHandComparison(
         "KC", "AC",                   // hero cards
         "3H", "TD",                   // villan cards
@@ -553,7 +699,7 @@ TEST_F(HandEvalTests, StraightVSFullHouse) {
         WIN);
 }
 
-TEST_F(HandEvalTests, StraightVSFourOfAKind) {
+TEST_F(FourthRoundGeneratorTests, StraightVSFourOfAKind) {
     expectHandComparison(
         "KC", "AC",                   // hero cards
         "3H", "3S",                   // villan cards
@@ -566,7 +712,7 @@ TEST_F(HandEvalTests, StraightVSFourOfAKind) {
         WIN);
 }
 
-TEST_F(HandEvalTests, StraightVSStraightFlush) {
+TEST_F(FourthRoundGeneratorTests, StraightVSStraightFlush) {
     expectHandComparison(
         "KC", "AC",                   // hero cards
         "8H", "9H",                   // villan cards
@@ -579,7 +725,7 @@ TEST_F(HandEvalTests, StraightVSStraightFlush) {
         WIN);
 }
 
-TEST_F(HandEvalTests, StraightVSRoyalFlush) {
+TEST_F(FourthRoundGeneratorTests, StraightVSRoyalFlush) {
     expectHandComparison(
         "KC", "AC",                   // hero cards
         "KH", "AH",                   // villan cards
@@ -592,7 +738,7 @@ TEST_F(HandEvalTests, StraightVSRoyalFlush) {
         WIN);
 }
 
-TEST_F(HandEvalTests, FlushVSFullHouse) {
+TEST_F(FourthRoundGeneratorTests, FlushVSFullHouse) {
     expectHandComparison(
         "6H", "7H",                   // hero cards
         "3S", "TD",                   // villan cards
@@ -605,7 +751,7 @@ TEST_F(HandEvalTests, FlushVSFullHouse) {
         WIN);
 }
 
-TEST_F(HandEvalTests, FlushVSFourOfAKind) {
+TEST_F(FourthRoundGeneratorTests, FlushVSFourOfAKind) {
     expectHandComparison(
         "6H", "7H",                   // hero cards
         "3S", "3H",                   // villan cards
@@ -618,7 +764,7 @@ TEST_F(HandEvalTests, FlushVSFourOfAKind) {
         WIN);
 }
 
-TEST_F(HandEvalTests, FlushVSStraightFlush) {
+TEST_F(FourthRoundGeneratorTests, FlushVSStraightFlush) {
     expectHandComparison(
         "6H", "AH",                   // hero cards
         "8H", "9H",                   // villan cards
@@ -631,7 +777,7 @@ TEST_F(HandEvalTests, FlushVSStraightFlush) {
         WIN);
 }
 
-TEST_F(HandEvalTests, FlushVSRoyalFlush) {
+TEST_F(FourthRoundGeneratorTests, FlushVSRoyalFlush) {
     expectHandComparison(
         "6H", "7H",                   // hero cards
         "KH", "AH",                   // villan cards
@@ -644,7 +790,7 @@ TEST_F(HandEvalTests, FlushVSRoyalFlush) {
         WIN);
 }
 
-TEST_F(HandEvalTests, FullHouseVSFourOfAKind) {
+TEST_F(FourthRoundGeneratorTests, FullHouseVSFourOfAKind) {
     expectHandComparison(
         "QC", "QS",                   // hero cards
         "3H", "3S",                   // villan cards
@@ -657,7 +803,7 @@ TEST_F(HandEvalTests, FullHouseVSFourOfAKind) {
         WIN);
 }
 
-TEST_F(HandEvalTests, FullHouseVSStraightFlush) {
+TEST_F(FourthRoundGeneratorTests, FullHouseVSStraightFlush) {
     expectHandComparison(
         "QC", "QS",                   // hero cards
         "8H", "9H",                   // villan cards
@@ -670,7 +816,7 @@ TEST_F(HandEvalTests, FullHouseVSStraightFlush) {
         WIN);
 }
 
-TEST_F(HandEvalTests, FullHouseVSRoyalFlush) {
+TEST_F(FourthRoundGeneratorTests, FullHouseVSRoyalFlush) {
     expectHandComparison(
         "QC", "QS",                   // hero cards
         "KH", "AH",                   // villan cards
@@ -683,7 +829,7 @@ TEST_F(HandEvalTests, FullHouseVSRoyalFlush) {
         WIN);
 }
 
-TEST_F(HandEvalTests, FourOfAKindVSStraightFlush) {
+TEST_F(FourthRoundGeneratorTests, FourOfAKindVSStraightFlush) {
     expectHandComparison(
         "3H", "3S",                   // hero cards
         "8H", "9H",                   // villan cards
@@ -696,7 +842,7 @@ TEST_F(HandEvalTests, FourOfAKindVSStraightFlush) {
         WIN);
 }
 
-TEST_F(HandEvalTests, FourOfAKindVSRoyalFlush) {
+TEST_F(FourthRoundGeneratorTests, FourOfAKindVSRoyalFlush) {
     expectHandComparison(
         "3H", "3S",                   // hero cards
         "KH", "AH",                   // villan cards
@@ -709,7 +855,7 @@ TEST_F(HandEvalTests, FourOfAKindVSRoyalFlush) {
         WIN);
 }
 
-TEST_F(HandEvalTests, StraightFlushVSRoyalFlush) {
+TEST_F(FourthRoundGeneratorTests, StraightFlushVSRoyalFlush) {
     expectHandComparison(
         "8H", "9H",                   // hero cards
         "KH", "AH",                   // villan cards
@@ -722,7 +868,7 @@ TEST_F(HandEvalTests, StraightFlushVSRoyalFlush) {
         WIN);
 }
 
-TEST_F(HandEvalTests, HighCardVSHighCard) {
+TEST_F(FourthRoundGeneratorTests, HighCardVSHighCard) {
     expectHandComparison(
         "4S", "5C",                   // hero cards
         "6C", "4C",                   // villan cards
@@ -779,7 +925,7 @@ TEST_F(HandEvalTests, HighCardVSHighCard) {
         TIE);
 }
 
-TEST_F(HandEvalTests, OnePairVSOnePair) {
+TEST_F(FourthRoundGeneratorTests, OnePairVSOnePair) {
     expectHandComparison(
         "2C", "5C",                   // hero cards
         "3D", "4C",                   // villan cards
@@ -814,7 +960,7 @@ TEST_F(HandEvalTests, OnePairVSOnePair) {
         TIE);
 }
 
-TEST_F(HandEvalTests, TwoPairVSTwoPair) {
+TEST_F(FourthRoundGeneratorTests, TwoPairVSTwoPair) {
     expectHandComparison(
         "TD", "3S",                   // hero cards
         "QD", "JS",                   // villan cards
@@ -893,7 +1039,7 @@ TEST_F(HandEvalTests, TwoPairVSTwoPair) {
         TIE);
 }
 
-TEST_F(HandEvalTests, ThreeOfAKindVSThreeOfAKind) {
+TEST_F(FourthRoundGeneratorTests, ThreeOfAKindVSThreeOfAKind) {
     expectHandComparison(
         "2H", "2C",                   // hero cards
         "3D", "3H",                   // villan cards
@@ -950,7 +1096,7 @@ TEST_F(HandEvalTests, ThreeOfAKindVSThreeOfAKind) {
         TIE);
 }
 
-TEST_F(HandEvalTests, StraightVSStraight) {
+TEST_F(FourthRoundGeneratorTests, StraightVSStraight) {
     expectHandComparison(
         "TS", "8S",                   // hero cards
         "TC", "KC",                   // villan cards
@@ -985,7 +1131,7 @@ TEST_F(HandEvalTests, StraightVSStraight) {
         TIE);
 }
 
-TEST_F(HandEvalTests, FlushVSFlush) {
+TEST_F(FourthRoundGeneratorTests, FlushVSFlush) {
     expectHandComparison(
         "9H", "QH",                   // hero cards
         "KH", "AH",                   // villan cards
@@ -1053,7 +1199,7 @@ TEST_F(HandEvalTests, FlushVSFlush) {
         TIE);
 }
 
-TEST_F(HandEvalTests, FullHouseVSFullHouse) {
+TEST_F(FourthRoundGeneratorTests, FullHouseVSFullHouse) {
     expectHandComparison(
         "8D", "8C",                   // hero cards
         "TD", "TC",                   // villan cards
@@ -1099,7 +1245,7 @@ TEST_F(HandEvalTests, FullHouseVSFullHouse) {
         TIE);
 }
 
-TEST_F(HandEvalTests, FourOfAKindVSFourOfAKind) {
+TEST_F(FourthRoundGeneratorTests, FourOfAKindVSFourOfAKind) {
     expectHandComparison(
         "4C", "4S",                   // hero cards
         "8D", "8C",                   // villan cards
@@ -1145,7 +1291,7 @@ TEST_F(HandEvalTests, FourOfAKindVSFourOfAKind) {
         TIE);
 }
 
-TEST_F(HandEvalTests, StraightFlushVSStraightFlush) {
+TEST_F(FourthRoundGeneratorTests, StraightFlushVSStraightFlush) {
     expectHandComparison(
         "AH", "2H",                   // hero cards
         "6H", "7H",                   // villan cards
@@ -1189,5 +1335,43 @@ TEST_F(HandEvalTests, StraightFlushVSStraightFlush) {
         "AS", "AH",                   // villan cards
         "9H", "8H", "7H", "JH", "TH", // community cards
         TIE);
+}
+
+// Integration Tests
+// Expected percentage values computed using pokerstove
+
+TEST_F(FourthRoundGeneratorTests, GetMeanTest) {
+    EXPECT_NEAR(0.955556, getMeanTest(
+        "2H","2D",                  // hero cards
+        "2C","2S","3D","3H","3C"    // community cards
+    ), maxEquityDiff);
+    EXPECT_NEAR(0.99899, getMeanTest(
+        "KS","AH",                  // hero cards
+        "AD","AC","AS","KC","QC"    // community cards
+    ), maxEquityDiff);
+}
+
+TEST_F(FourthRoundGeneratorTests, SecondRoundIntegration) {
+    EXPECT_NEAR(0.999664, secondRoundMean(
+        "2H","2D",      // hero cards
+        "2C","2S","3D"  // community cards
+    ), maxEquityDiff);
+    EXPECT_NEAR(0.999972, secondRoundMean(
+        "KS","AH",      // hero cards
+        "AD","AC","AS"  // community cards
+    ), maxEquityDiff);
+    EXPECT_NEAR(0.189307, secondRoundMean(
+        "4D","5H",      // hero cards
+        "2H","7C","9D"  // community cards
+    ), maxEquityDiff);
+}
+
+TEST_F(FourthRoundGeneratorTests, FirstRoundIntegration) {
+    EXPECT_NEAR(0.653201, firstRoundMean(
+        "2D","7H"       // hero cards
+    ), maxEquityDiff);
+    EXPECT_NEAR(0.653201, firstRoundMean(
+        "KS","AH"       // hero cards
+    ), maxEquityDiff);
 }
 

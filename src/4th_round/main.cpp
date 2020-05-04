@@ -31,6 +31,9 @@ int main()
     int lastPID = 1;
     int parentPID = getpid();
     int pid;
+
+    FourthRoundGenerator gen;
+
     for (pid = 0; pid < numProcesses - 1; pid++)
     {
         lastPID = fork();
@@ -40,7 +43,7 @@ int main()
             std::stringstream fileName;
             fileName << std::setfill('0') << std::setw(3) << pid;
             printf("preparing to write to %s for values between %lu-%lu\n", fileName.str().c_str(), tLast, tLast+tPerThread);
-            compute4thRound(pid, tLast, tLast + tPerThread,
+            gen.compute4thRound(pid, tLast, tLast + tPerThread,
                             "distributions/_" + fileName.str() + ".csv");
             break;
         }
@@ -51,7 +54,7 @@ int main()
         std::stringstream fileName;
         fileName << std::setfill('0') << std::setw(3) << pid;
             printf("preparing to write to %s for values between %lu-%lu\n", fileName.str().c_str(), tLast, T);
-        compute4thRound(pid, tLast, T, "distributions/_" + fileName.str() + ".csv");
+        gen.compute4thRound(pid, tLast, T, "distributions/_" + fileName.str() + ".csv");
         while (numProcesses > 1) {
             int status;
             pid_t done = wait(&status);
