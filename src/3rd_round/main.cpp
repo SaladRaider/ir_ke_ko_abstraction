@@ -29,10 +29,10 @@ int main() {
 
     size_t pid = 0;
     printf("preparing to read from all for values between %lu-%lu\n", tLast3, T3);
-    ThirdRoundGenerator gen;
-    gen.compute3rdRound(0, T3, "distributions_4th_upstream/all.csv");
-    gen.compute2ndRound(0, T2);
-    gen.compute1stRound(0, T1);
+    ThirdRoundGenerator *gen = new ThirdRoundGenerator();
+    gen->compute3rdRound(0, T3, "distributions_4th_upstream/all.csv");
+    gen->compute2ndRound(0, T2);
+    gen->compute1stRound(0, T1);
 
     int lastPID = 1;
     pid = 0;
@@ -55,11 +55,11 @@ int main() {
             std::stringstream fileOutName;
             fileOutName << std::setfill('0') << std::setw(3) << pid;
             printf("preparing to write to %s for values between %lu-%lu\n", fileOutName.str().c_str(), tLast3, tLast3+tPerThread3);
-            gen.saveBuckets(tLast3, tLast3 + tPerThread3, "distributions_3rd/_" + fileOutName.str() + ".csv");
+            gen->saveBuckets(tLast3, tLast3 + tPerThread3, "distributions_3rd/_" + fileOutName.str() + ".csv");
             printf("preparing to write to %s for values between %lu-%lu\n", fileOutName.str().c_str(), tLast2, tLast2+tPerThread2);
-            gen.saveBuckets2nd(tLast2, tLast2 + tPerThread2, "distributions_2nd/_" + fileOutName.str() + ".csv");
+            gen->saveBuckets2nd(tLast2, tLast2 + tPerThread2, "distributions_2nd/_" + fileOutName.str() + ".csv");
             printf("preparing to write to %s for values between %lu-%lu\n", fileOutName.str().c_str(), tLast1, tLast1+tPerThread1);
-            gen.saveBuckets1st(tLast1, tLast1 + tPerThread1, "distributions_1st/_" + fileOutName.str() + ".csv");
+            gen->saveBuckets1st(tLast1, tLast1 + tPerThread1, "distributions_1st/_" + fileOutName.str() + ".csv");
             break;
         }
         tLast3 += tPerThread3;
@@ -71,11 +71,11 @@ int main() {
         std::stringstream fileOutName;
         fileOutName << std::setfill('0') << std::setw(3) << pid;
         printf("preparing to write to %s for values between %lu-%lu\n", fileOutName.str().c_str(), tLast3, T3);
-        gen.saveBuckets(tLast3, T3, "distributions_3rd/_" + fileOutName.str() + ".csv");
+        gen->saveBuckets(tLast3, T3, "distributions_3rd/_" + fileOutName.str() + ".csv");
         printf("preparing to write to %s for values between %lu-%lu\n", fileOutName.str().c_str(), tLast2, T2);
-        gen.saveBuckets2nd(tLast2, T2, "distributions_2nd/_" + fileOutName.str() + ".csv");
+        gen->saveBuckets2nd(tLast2, T2, "distributions_2nd/_" + fileOutName.str() + ".csv");
         printf("preparing to write to %s for values between %lu-%lu\n", fileOutName.str().c_str(), tLast1, T1);
-        gen.saveBuckets1st(tLast1, T1, "distributions_1st/_" + fileOutName.str() + ".csv");
+        gen->saveBuckets1st(tLast1, T1, "distributions_1st/_" + fileOutName.str() + ".csv");
         while (numProcesses > 1) {
             int status;
             pid_t done = wait(&status);
@@ -92,5 +92,6 @@ int main() {
         printf("child(%d) exited.\n", getpid());
         return 0;
     }
+    delete gen;
     return 0;
 }
