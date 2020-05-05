@@ -9,7 +9,7 @@ class ThirdRoundGenerator {
 private:
     const size_t c_numBuckets = 50;
     std::array<std::array<std::int8_t, 50>, 305377800> buckets;
-    std::array<std::array<std::int8_t, 50>, 25989600> buckets2nd;
+    std::array<std::array<unsigned int, 50>, 25989600> buckets2nd;
     std::array<std::array<unsigned int, 50>, 1326> buckets1st;
 public:
     std::array<bool, 52> c_inDeck = {

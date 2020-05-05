@@ -177,7 +177,7 @@ void ThirdRoundGenerator::compute2ndRound(unsigned long start, unsigned long sto
     c_inDeck.fill(true);
     size_t p0, p1, c0, c1, c2, c3, i;
     size_t h0, h1, h2, h3;
-    std::int8_t bucketVal;
+    unsigned int bucketVal;
     for (c0 = 0; c0 < 49; c0++)
     for (c1 = c0 + 1; c1 < 50; c1++)
     for (c2 = c1 + 1; c2 < 51; c2++)
@@ -199,7 +199,7 @@ void ThirdRoundGenerator::compute2ndRound(unsigned long start, unsigned long sto
             h2 = getHash2nd(p0,p1,c0,c2,c3);
             h3 = getHash2nd(p0,p1,c1,c2,c3);
             for (i = 0; i < c_numBuckets; i++) {
-                bucketVal = buckets[count][i];
+                bucketVal = size_t(buckets[count][i]);
                 buckets2nd[h0][i] += bucketVal;
                 buckets2nd[h1][i] += bucketVal;
                 buckets2nd[h2][i] += bucketVal;

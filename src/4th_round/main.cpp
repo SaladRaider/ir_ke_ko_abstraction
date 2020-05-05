@@ -14,16 +14,10 @@ int main()
 {
     unsigned long T;
     unsigned long numProcesses;
-    printf("T:\n");
-    std::cin >> T;
     printf("numProcesses:\n");
     std::cin >> numProcesses;
-    //unsigned long int innerCount = compute4thRound(T, "4th_round_distributions.csv");
 
-    if (T > 2809475760)
-    {
-        T = 2809475760; // 52 choose 5 * 47 choose 2
-    }
+    T = 2809475760; // 52 choose 5 * 47 choose 2
 
     unsigned long tPerThread = T / numProcesses;
     unsigned long tLast = 0;
@@ -72,20 +66,6 @@ int main()
         return 0;
     }
 
-    /*
-    std::vector<std::thread> threads;
-    for (int tid = 0; tid < numThreads; tid++)
-    {
-       threads.push_back(std::thread(compute4thRound, tid, tLast, tLast + tPerThread,
-                                     "distributions/_" + std::to_string(tid) + ".csv"));
-       tLast += tPerThread;
-    }
-    for (int tid = 0; tid < numThreads; tid++)
-    {
-        threads[tid].join();
-        printf("Thread %d joined.\n", tid);
-    }
-    */
     printf("Done computing.\n");
     return 0;
 }

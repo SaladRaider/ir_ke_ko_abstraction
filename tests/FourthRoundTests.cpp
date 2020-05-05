@@ -1349,6 +1349,10 @@ TEST_F(FourthRoundGeneratorTests, GetMeanTest) {
         "KS","AH",                  // hero cards
         "AD","AC","AS","KC","QC"    // community cards
     ), maxEquityDiff);
+    EXPECT_NEAR(0.00000, getMeanTest(
+        "3H","3C",                  // hero cards
+        "2D","2H","2C","2S","3D"    // community cards
+    ), maxEquityDiff);
 }
 
 TEST_F(FourthRoundGeneratorTests, SecondRoundIntegration) {
