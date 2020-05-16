@@ -1,11 +1,7 @@
 project(IRKEKOAbstraction)
 cmake_minimum_required(VERSION 3.5)
 
-add_compile_options(-D_FORTIFY_SOURCE=2 -D_GLBICXX_ASSERTIONS
-    -fasynchronous-unwind-tables -fexceptions -fpie -fpic -fstack-protector -g
-    -grecord-gcc-switches -O2 -pipe -std=c++17)
-
-add_definitions("-fPIC")
+add_compile_options(-D_FORTIFY_SOURCE=2 -D_GLBICXX_ASSERTIONS -O3 -pipe -std=c++17)
 
 enable_testing()
 add_subdirectory(extern/googletest)
