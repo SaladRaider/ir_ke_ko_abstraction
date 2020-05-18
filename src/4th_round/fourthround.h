@@ -16,7 +16,7 @@ class FourthRoundGenerator {
   std::array<size_t, 15> straightMask;
   std::array<size_t, 4> suitIdxSize;
   std::array<std::array<size_t, 5>, 4> suitIdx;
-  std::array<int, 8> buckets;
+  std::array<float, 8> buckets;
 
  public:
   std::array<int, 7> pCards;
@@ -43,6 +43,7 @@ class FourthRoundGenerator {
                       const std::array<int, 7> &cards);
   void findHandType(std::unique_ptr<HandType> &handType,
                     const std::array<int, 7> &cards);
+  void computeBuckets();
   size_t hashGetValueArgs(const std::array<int, 7> &cards);
   int getValue();
   float getMean();
@@ -50,6 +51,7 @@ class FourthRoundGenerator {
                        std::string fileName);
   static const std::array<int, 52> c_cardValue;
   static const std::array<Suit, 52> c_cardSuit;
+  static std::unordered_map<size_t, size_t> clusterMap;
   std::array<bool, 52> c_inDeck = {
       true, true, true, true, true, true, true, true, true, true, true,
       true, true, true, true, true, true, true, true, true, true, true,
