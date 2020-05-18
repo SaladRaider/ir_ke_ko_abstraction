@@ -194,6 +194,62 @@ class FourthRoundGeneratorTests : public ::testing::Test {
     return mean;
   }
 
+  float getBucketTest(std::string p0Str, std::string p1Str, std::string c0Str,
+                      std::string c1Str, std::string c2Str, std::string c3Str,
+                      std::string c4Str) {
+    int p0 = this->deckMap[p0Str];
+    int p1 = this->deckMap[p1Str];
+    int c0 = this->deckMap[c0Str];
+    int c1 = this->deckMap[c1Str];
+    int c2 = this->deckMap[c2Str];
+    int c3 = this->deckMap[c3Str];
+    int c4 = this->deckMap[c4Str];
+    gen.c_inDeck[p0] = false;
+    gen.c_inDeck[p1] = false;
+    gen.c_inDeck[c0] = false;
+    gen.c_inDeck[c1] = false;
+    gen.c_inDeck[c2] = false;
+    gen.c_inDeck[c3] = false;
+    gen.c_inDeck[c4] = false;
+    gen.pCards[0] = p0;
+    gen.pCards[1] = p1;
+    gen.pCards[2] = c0;
+    gen.pCards[3] = c1;
+    gen.pCards[4] = c2;
+    gen.pCards[5] = c3;
+    gen.pCards[6] = c4;
+    std::sort(gen.pCards.begin(), gen.pCards.end());
+    gen.eCards[0] = 45;
+    gen.eCards[1] = 51;
+    gen.eCards[2] = c0;
+    gen.eCards[3] = c1;
+    gen.eCards[4] = c2;
+    gen.eCards[5] = c3;
+    gen.eCards[6] = c4;
+    gen.computeBuckets();
+    std::vector<size_t> bucketSize(8, 0);
+    size_t hash = 0;
+    for (size_t i7 = 0; i7 < 51; i7++)
+      for (size_t i8 = i7 + 1; i8 < 52; i8++) {
+        if (gen.c_inDeck[i8] && gen.c_inDeck[i7]) {
+          bucketSize[FourthRoundGenerator::clusterMap[hash]] += 2;
+        }
+        hash += 1;
+      }
+    float mean = 0;
+    for (size_t i = 0; i < gen.buckets.size(); i++)
+      mean += gen.buckets[i] * bucketSize[i];
+    mean /= 1980; // 47 choose 2
+    gen.c_inDeck[p0] = true;
+    gen.c_inDeck[p1] = true;
+    gen.c_inDeck[c0] = true;
+    gen.c_inDeck[c1] = true;
+    gen.c_inDeck[c2] = true;
+    gen.c_inDeck[c3] = true;
+    gen.c_inDeck[c4] = true;
+    return mean;
+  }
+
   void expectHandType(std::string s0, std::string s1, std::string s2,
                       std::string s3, std::string s4, std::string s5,
                       std::string s6, HandIndex handIndex, int c0, int c1,
@@ -1199,6 +1255,30 @@ TEST_F(FourthRoundGeneratorTests, GetMeanTest) {
               getMeanTest("3H", "3C",                   // hero cards
                           "2D", "2H", "2C", "2S", "3D"  // community cards
                           ),
+              maxEquityDiff);
+}
+
+TEST_F(FourthRoundGeneratorTests, GetBucketTest) {
+  EXPECT_NEAR(getMeanTest("2H", "2D",                     // hero cards
+                          "2C", "2S", "3D", "3H", "3C"    // community cards
+                          ),
+              getBucketTest("2H", "2D",                   // hero cards
+                            "2C", "2S", "3D", "3H", "3C"  // community cards
+                            ),
+              maxEquityDiff);
+  EXPECT_NEAR(getMeanTest("KS", "AH",                     // hero cards
+                          "AD", "AC", "AS", "KC", "QC"    // community cards
+                          ),
+              getBucketTest("KS", "AH",                   // hero cards
+                           "AD", "AC", "AS", "KC", "QC"   // community cards
+                           ),
+              maxEquityDiff);
+  EXPECT_NEAR(getMeanTest("3H", "3C",                     // hero cards
+                          "2D", "2H", "2C", "2S", "3D"    // community cards
+                          ),
+              getBucketTest("3H", "3C",                   // hero cards
+                            "2D", "2H", "2C", "2S", "3D"  // community cards
+                            ),
               maxEquityDiff);
 }
 

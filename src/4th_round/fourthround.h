@@ -16,11 +16,12 @@ class FourthRoundGenerator {
   std::array<size_t, 15> straightMask;
   std::array<size_t, 4> suitIdxSize;
   std::array<std::array<size_t, 5>, 4> suitIdx;
-  std::array<float, 8> buckets;
+  std::array<size_t, 8> bucketsSize;
 
  public:
   std::array<int, 7> pCards;
   std::array<int, 7> eCards;
+  std::array<float, 8> buckets;
   void findHighCard(std::unique_ptr<HandType> &handType,
                     const std::array<int, 7> &cards);
   void findOnePair(std::unique_ptr<HandType> &handType,

@@ -395,17 +395,14 @@ void FourthRoundGenerator::computeBuckets() {
   int c3 = eCards[5];
   int c4 = eCards[6];
   size_t hash = 0;
-  buckets[0] = 0.f;
-  buckets[1] = 0.f;
-  buckets[2] = 0.f;
-  buckets[3] = 0.f;
-  buckets[4] = 0.f;
-  buckets[5] = 0.f;
-  buckets[6] = 0.f;
-  buckets[7] = 0.f;
+  for (size_t i = 0; i < 8; i++) {
+    buckets[i] = 0.f;
+    bucketsSize[i] = 0;
+  }
+  int count = 0;
   for (size_t i7 = 0; i7 < 51; i7++)
     if (c_inDeck[i7])
-      for (size_t i8 = i7 + 1; i8 < 52; i8++)
+      for (size_t i8 = i7 + 1; i8 < 52; i8++) {
         if (c_inDeck[i8]) {
           eCards[0] = i7;
           eCards[1] = i8;
@@ -416,12 +413,18 @@ void FourthRoundGenerator::computeBuckets() {
           eCards[6] = c4;
           std::sort(eCards.begin(), eCards.end());
           buckets[clusterMap[hash]] += getValue();
-          hash += 1;
-        } else {
-          hash += 1;
+          bucketsSize[clusterMap[hash]] += 2;
         }
+        hash += 1;
+      }
     else
       hash += 51 - i7;
+  for (size_t i = 0; i < 8; i++) {
+    if (bucketsSize[i] > 0)
+      buckets[i] /= bucketsSize[i];
+    else
+      buckets[i] = 1.f;
+  }
 }
 
 void FourthRoundGenerator::compute4thRound(int tid, unsigned long start,
@@ -478,10 +481,10 @@ void FourthRoundGenerator::compute4thRound(int tid, unsigned long start,
                     computeBuckets();
                     // order from lowest cluster mean to highest
                     // (pre-calculated)
-                    f << buckets[4] / 472.f << ' ' << buckets[1] / 334.f << ' '
-                      << buckets[3] / 336.f << ' ' << buckets[0] / 462.f << ' '
-                      << buckets[6] / 288.f << ' ' << buckets[7] / 404.f << ' '
-                      << buckets[2] / 308.f << ' ' << buckets[5] / 84.f << '\n';
+                    f << buckets[4] << ' ' << buckets[1] << ' '
+                      << buckets[3] << ' ' << buckets[0] << ' '
+                      << buckets[6] << ' ' << buckets[7] << ' '
+                      << buckets[2] << ' ' << buckets[5] << '\n';
 
                     count += 1;
                     if (limit > 0 && count >= limit) {
