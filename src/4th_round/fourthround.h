@@ -52,7 +52,7 @@ class FourthRoundGenerator {
                        std::string fileName);
   static const std::array<int, 52> c_cardValue;
   static const std::array<Suit, 52> c_cardSuit;
-  static std::unordered_map<size_t, size_t> clusterMap;
+  static std::array<size_t, 1326> clusterMap;
   std::array<bool, 52> c_inDeck = {
       true, true, true, true, true, true, true, true, true, true, true,
       true, true, true, true, true, true, true, true, true, true, true,
